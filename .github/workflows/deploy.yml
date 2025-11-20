@@ -1,0 +1,29 @@
+name: Deploy to Cloud Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Deploy to Cloud Functions
+        uses: google-github-actions/deploy-cloud-functions@v1
+        with:
+          name: stock-collector
+          entry_point: cloud_function_entry
+          runtime: python310
+          region: asia-northeast3
+          source_dir: .
+          env_vars: BUCKET_NAME=${{ secrets.GCP_BUCKET_NAME }}
