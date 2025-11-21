@@ -334,6 +334,115 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
         ohlcv["foreign_participation"] = pd.NA
         ohlcv["institutional_participation"] = pd.NA
     
+    # 10. ML 피처 계산 (Target, Lag, Rolling Stats)
+    # 데이터 정렬 확인 (시간 순서 중요!)
+    ohlcv = ohlcv.sort_index()
+    
+    # === Target 변수 (예측 목표) ===
+    try:
+        # 다음날 수익률 계산
+        ohlcv["target_return_1d"] = ohlcv["close"].pct_change(1).shift(-1) * 100
+        
+        # 3일, 5일 후 수익률
+        ohlcv["target_return_3d"] = ohlcv["close"].pct_change(3).shift(-3) * 100
+        ohlcv["target_return_5d"] = ohlcv["close"].pct_change(5).shift(-5) * 100
+        
+        # 다음날 종가
+        ohlcv["target_close"] = ohlcv["close"].shift(-1)
+        
+        # 상승/하락 방향 (1=상승, 0=하락)
+        ohlcv["target_direction"] = (ohlcv["target_return_1d"] > 0).astype(int)
+        
+        # 다음날 변동폭
+        ohlcv["target_high_low_range"] = ((ohlcv["high"] - ohlcv["low"]) / ohlcv["close"]).shift(-1)
+    except Exception as e:
+        print(f"  └ Warning: Target variables calculation error: {e}")
+        for col in ["target_return_1d", "target_return_3d", "target_return_5d", 
+                    "target_close", "target_direction", "target_high_low_range"]:
+            ohlcv[col] = pd.NA
+    
+    # === Lag Features (과거 값) ===
+    try:
+        # 종가 Lag
+        ohlcv["close_lag1"] = ohlcv["close"].shift(1)
+        ohlcv["close_lag2"] = ohlcv["close"].shift(2)
+        ohlcv["close_lag3"] = ohlcv["close"].shift(3)
+        ohlcv["close_lag5"] = ohlcv["close"].shift(5)
+        
+        # 거래량 Lag
+        ohlcv["volume_lag1"] = ohlcv["volume"].shift(1)
+        ohlcv["volume_lag2"] = ohlcv["volume"].shift(2)
+        ohlcv["volume_lag3"] = ohlcv["volume"].shift(3)
+        
+        # 수익률 Lag
+        ohlcv["return_lag1"] = ohlcv["return_1d"].shift(1)
+        ohlcv["return_lag2"] = ohlcv["return_1d"].shift(2)
+        ohlcv["return_lag3"] = ohlcv["return_1d"].shift(3)
+        ohlcv["return_lag5"] = ohlcv["return_1d"].shift(5)
+        
+        # 투자자 Lag
+        ohlcv["foreign_net_lag1"] = ohlcv["foreign_net"].shift(1)
+        ohlcv["institution_net_lag1"] = ohlcv["institution_net"].shift(1)
+        
+        # 변동성 Lag
+        ohlcv["atr_lag1"] = ohlcv["atr_14"].shift(1)
+        ohlcv["bb_width_lag1"] = ohlcv["bb_width"].shift(1)
+    except Exception as e:
+        print(f"  └ Warning: Lag features calculation error: {e}")
+        lag_cols = ["close_lag1", "close_lag2", "close_lag3", "close_lag5",
+                    "volume_lag1", "volume_lag2", "volume_lag3",
+                    "return_lag1", "return_lag2", "return_lag3", "return_lag5",
+                    "foreign_net_lag1", "institution_net_lag1",
+                    "atr_lag1", "bb_width_lag1"]
+        for col in lag_cols:
+            ohlcv[col] = pd.NA
+    
+    # === Rolling Statistics (과거 N일 통계) ===
+    try:
+        # 최근 5일 통계
+        ohlcv["close_5d_min"] = ohlcv["close"].rolling(5).min()
+        ohlcv["close_5d_max"] = ohlcv["close"].rolling(5).max()
+        ohlcv["close_5d_std"] = ohlcv["close"].rolling(5).std()
+        ohlcv["volume_5d_mean"] = ohlcv["volume"].rolling(5).mean()
+        ohlcv["volume_5d_std"] = ohlcv["volume"].rolling(5).std()
+        ohlcv["return_5d_mean"] = ohlcv["return_1d"].rolling(5).mean()
+        ohlcv["return_5d_std"] = ohlcv["return_1d"].rolling(5).std()
+        
+        # 최근 20일 통계
+        ohlcv["close_20d_min"] = ohlcv["close"].rolling(20).min()
+        ohlcv["close_20d_max"] = ohlcv["close"].rolling(20).max()
+        
+        # 샤프 비율 (20일)
+        mean_return = ohlcv["return_1d"].rolling(20).mean()
+        std_return = ohlcv["return_1d"].rolling(20).std()
+        ohlcv["return_20d_sharpe"] = (mean_return / std_return).replace([np.inf, -np.inf], pd.NA)
+    except Exception as e:
+        print(f"  └ Warning: Rolling statistics calculation error: {e}")
+        rolling_cols = ["close_5d_min", "close_5d_max", "close_5d_std",
+                        "volume_5d_mean", "volume_5d_std",
+                        "return_5d_mean", "return_5d_std",
+                        "close_20d_min", "close_20d_max", "return_20d_sharpe"]
+        for col in rolling_cols:
+            ohlcv[col] = pd.NA
+    
+    # === Price Position (가격 위치) ===
+    try:
+        # MA 대비 위치
+        ohlcv["price_vs_ma5"] = ((ohlcv["close"] - ohlcv["ma5"]) / ohlcv["ma5"] * 100).replace([np.inf, -np.inf], pd.NA)
+        ohlcv["price_vs_ma20"] = ((ohlcv["close"] - ohlcv["ma20"]) / ohlcv["ma20"] * 100).replace([np.inf, -np.inf], pd.NA)
+        ohlcv["price_vs_ma60"] = ((ohlcv["close"] - ohlcv["ma60"]) / ohlcv["ma60"] * 100).replace([np.inf, -np.inf], pd.NA)
+        
+        # Bollinger Band 내 위치 (0~1)
+        bb_range = ohlcv["bb_upper"] - ohlcv["bb_lower"]
+        ohlcv["bb_position"] = ((ohlcv["close"] - ohlcv["bb_lower"]) / bb_range).replace([np.inf, -np.inf], pd.NA)
+        
+        # RSI 변화
+        ohlcv["rsi_change"] = ohlcv["rsi_14"].diff()
+    except Exception as e:
+        print(f"  └ Warning: Price position calculation error: {e}")
+        for col in ["price_vs_ma5", "price_vs_ma20", "price_vs_ma60", "bb_position", "rsi_change"]:
+            ohlcv[col] = pd.NA
+    
     return ohlcv
 
 
