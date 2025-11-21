@@ -18,7 +18,7 @@ class BigQueryClient:
             print(f"Dataset {self.dataset_id} already exists.")
         except NotFound:
             dataset = bigquery.Dataset(self.dataset_id)
-            dataset.location = "asia-northeast3"  # Use the same region as Cloud Run if possible
+            dataset.location = "us-central1"  # Use the same region as Cloud Run if possible
             dataset = self.client.create_dataset(dataset, timeout=30)
             print(f"Created dataset {self.dataset_id}")
 
