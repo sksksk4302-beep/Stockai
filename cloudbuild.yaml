@@ -17,6 +17,8 @@ steps:
       - 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot'
       - '--region'
       - 'us-central1'
+      - '--service-account'
+      - 'stock-ai@tonal-land-477206-h3.iam.gserviceaccount.com'
 
 
 options:
