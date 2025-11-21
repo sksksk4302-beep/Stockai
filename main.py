@@ -445,6 +445,27 @@ def cloud_function_entry(request):
     request_json = request.get_json(silent=True)
     request_args = request.args
     
+    # 특수 액션 체크 (테이블 재생성)
+    action = None
+    if request_json and 'action' in request_json:
+        action = request_json['action']
+    elif request_args and 'action' in request_args:
+        action = request_args['action']
+    
+    if action == 'recreate_table':
+        try:
+            # 기존 테이블 삭제
+            bq.client.delete_table(bq.table_id)
+            print(f"✅ 기존 테이블 삭제 완료: {bq.table_id}")
+        except Exception as e:
+            print(f"⚠️ 테이블 삭제 중 오류 (무시 가능): {e}")
+        
+        # 새 테이블 생성
+        bq.create_dataset_if_not_exists()
+        bq.create_table_if_not_exists()
+        
+        return f"✅ 테이블 재생성 완료: {bq.table_id}"
+    
     ticker = None
     if request_json and 'ticker' in request_json:
         ticker = request_json['ticker']
