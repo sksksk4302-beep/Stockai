@@ -162,57 +162,101 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     ohlcv["krw_usd"] = pd.NA
 
     # 7. 기술적 지표 계산 (ta library 사용)
+    # 이동평균
     try:
-        # 이동평균
         ohlcv["ma5"] = ta.trend.sma_indicator(ohlcv["close"], window=5)
         ohlcv["ma20"] = ta.trend.sma_indicator(ohlcv["close"], window=20)
         ohlcv["ma60"] = ta.trend.sma_indicator(ohlcv["close"], window=60)
         ohlcv["ma120"] = ta.trend.sma_indicator(ohlcv["close"], window=120)
-        
-        # 거래량 이동평균
+    except Exception as e:
+        print(f"  └ Warning: MA calculation error: {e}")
+        ohlcv["ma5"] = pd.NA
+        ohlcv["ma20"] = pd.NA
+        ohlcv["ma60"] = pd.NA
+        ohlcv["ma120"] = pd.NA
+    
+    # 거래량 이동평균
+    try:
         ohlcv["volume_ma5"] = ta.trend.sma_indicator(ohlcv["volume"], window=5)
         ohlcv["volume_ma20"] = ta.trend.sma_indicator(ohlcv["volume"], window=20)
-        
-        # 정규화 거래량
+    except Exception as e:
+        print(f"  └ Warning: Volume MA calculation error: {e}")
+        ohlcv["volume_ma5"] = pd.NA
+        ohlcv["volume_ma20"] = pd.NA
+    
+    # 정규화 거래량
+    try:
         ohlcv["vol_norm"] = ohlcv["volume"] / ohlcv["volume_ma20"]
-        
-        # RSI
+    except:
+        ohlcv["vol_norm"] = pd.NA
+    
+    # RSI
+    try:
         ohlcv["rsi_14"] = ta.momentum.rsi(ohlcv["close"], window=14)
-        
-        # MACD
+    except Exception as e:
+        print(f"  └ Warning: RSI calculation error: {e}")
+        ohlcv["rsi_14"] = pd.NA
+    
+    # MACD
+    try:
         macd = ta.trend.MACD(ohlcv["close"], window_fast=12, window_slow=26, window_sign=9)
         ohlcv["macd"] = macd.macd()
         ohlcv["macd_signal"] = macd.macd_signal()
         ohlcv["macd_hist"] = macd.macd_diff()
-        
-        # Bollinger Bands
+    except Exception as e:
+        print(f"  └ Warning: MACD calculation error: {e}")
+        ohlcv["macd"] = pd.NA
+        ohlcv["macd_signal"] = pd.NA
+        ohlcv["macd_hist"] = pd.NA
+    
+    # Bollinger Bands
+    try:
         bb = ta.volatility.BollingerBands(ohlcv["close"], window=20, window_dev=2)
         ohlcv["bb_upper"] = bb.bollinger_hband()
         ohlcv["bb_middle"] = bb.bollinger_mavg()
         ohlcv["bb_lower"] = bb.bollinger_lband()
         ohlcv["bb_width"] = bb.bollinger_wband()
-        
-        # ATR
+    except Exception as e:
+        print(f"  └ Warning: Bollinger Bands calculation error: {e}")
+        ohlcv["bb_upper"] = pd.NA
+        ohlcv["bb_middle"] = pd.NA
+        ohlcv["bb_lower"] = pd.NA
+        ohlcv["bb_width"] = pd.NA
+    
+    # ATR
+    try:
         ohlcv["atr_14"] = ta.volatility.average_true_range(
             ohlcv["high"], ohlcv["low"], ohlcv["close"], window=14
         )
-        
-        # ROC
+    except Exception as e:
+        print(f"  └ Warning: ATR calculation error: {e}")
+        ohlcv["atr_14"] = pd.NA
+    
+    # ROC
+    try:
         ohlcv["roc_10"] = ta.momentum.roc(ohlcv["close"], window=10)
-        
-        # Momentum (간단 계산: close - close.shift(10))
+    except Exception as e:
+        print(f"  └ Warning: ROC calculation error: {e}")
+        ohlcv["roc_10"] = pd.NA
+    
+    # Momentum
+    try:
         ohlcv["momentum_10"] = ohlcv["close"] - ohlcv["close"].shift(10)
-        
-        # Stochastic
+    except:
+        ohlcv["momentum_10"] = pd.NA
+    
+    # Stochastic
+    try:
         stoch = ta.momentum.StochasticOscillator(
             ohlcv["high"], ohlcv["low"], ohlcv["close"], 
             window=14, smooth_window=3
         )
         ohlcv["stoch_k"] = stoch.stoch()
         ohlcv["stoch_d"] = stoch.stoch_signal()
-            
     except Exception as e:
-        print(f"  └ Warning: Error calculating technical indicators for {ticker}: {e}")
+        print(f"  └ Warning: Stochastic calculation error: {e}")
+        ohlcv["stoch_k"] = pd.NA
+        ohlcv["stoch_d"] = pd.NA
 
     # 8. 메타데이터 추가
     ohlcv["ticker"] = ticker
