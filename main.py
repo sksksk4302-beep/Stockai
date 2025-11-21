@@ -67,21 +67,21 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
         return pd.DataFrame()
 
     # 2. 투자자별 매매동향 (세부 분류)
+    # pykrx 컬럼: 개인, 외국인, 기관합계, 금융투자, 보험, 투신, 사모, 은행, 기타금융, 연기금, 기타법인
+    inv_mapping = {
+        "개인": "individual_net",
+        "외국인": "foreign_net",
+        "기관합계": "institution_net",
+        "연기금": "pension_net",
+        "보험": "insurance_net",
+        "투신": "trust_net",
+        "기타금융": "etc_finance_net",
+        "은행": "bank_net",
+        "기타법인": "etc_corp_net"
+    }
+    
     try:
         inv = stock.get_market_trading_value_by_date(start_str, end_str, ticker)
-        
-        # pykrx 컬럼: 개인, 외국인, 기관합계, 금융투자, 보험, 투신, 사모, 은행, 기타금융, 연기금, 기타법인
-        inv_mapping = {
-            "개인": "individual_net",
-            "외국인": "foreign_net",
-            "기관합계": "institution_net",
-            "연기금": "pension_net",
-            "보험": "insurance_net",
-            "투신": "trust_net",
-            "기타금융": "etc_finance_net",
-            "은행": "bank_net",
-            "기타법인": "etc_corp_net"
-        }
         
         for kr_col, en_col in inv_mapping.items():
             if kr_col in inv.columns:
@@ -219,8 +219,10 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     ohlcv["name"] = stock.get_market_ticker_name(ticker)
     
     # index(날짜)를 컬럼으로
-    ohlcv = ohlcv.reset_index().rename(columns={"index": "날짜", "날짜": "date"})
-    if "날짜" in ohlcv.columns and "date" not in ohlcv.columns:
+    ohlcv = ohlcv.reset_index()
+    if "index" in ohlcv.columns:
+        ohlcv = ohlcv.rename(columns={"index": "date"})
+    elif "날짜" in ohlcv.columns:
         ohlcv = ohlcv.rename(columns={"날짜": "date"})
     
     return ohlcv
