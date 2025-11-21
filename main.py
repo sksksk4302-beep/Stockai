@@ -39,6 +39,7 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
       - 거래량, 거래량 전일비
       - 투자자별 매매동향(개인, 외국인, 기관)
       - 공매도잔고(=대차잔고 비슷하게 사용), 전일비
+      - 펀더멘털 지표 (PER, EPS, 추정EPS, PBR, BPS)
     를 모두 합쳐서 DataFrame으로 반환
     """
     start_str = start.strftime("%Y%m%d")
@@ -82,8 +83,30 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
         short_bal["대차잔고"] = pd.NA
         short_bal["대차잔고전일비"] = pd.NA
 
-    # ----- 2-4. 데이터 병합 -----
-    df = price.join(inv, how="left").join(short_bal, how="left")
+    # ----- 2-4. 펀더멘털 지표 (PER, EPS, PBR, BPS, EPS 추정치) -----
+    try:
+        # get_market_fundamental_by_date: BPS, PER, PBR, EPS, DIV, DPS 제공
+        fundamental = stock.get_market_fundamental_by_date(start_str, end_str, ticker)
+        
+        # 필요한 컬럼만 선택
+        fundamental = fundamental[["BPS", "PER", "PBR", "EPS"]].copy()
+        
+        # 추정 EPS는 pykrx에서 직접 제공하지 않으므로 일단 NULL로 설정
+        # 향후 다른 API나 크롤링으로 추가 가능
+        fundamental["추정EPS"] = pd.NA
+        
+    except Exception as e:
+        print(f"Warning: Could not fetch fundamental data for {ticker}: {e}")
+        # 펀더멘털 데이터가 없는 경우 빈 DataFrame 생성
+        fundamental = pd.DataFrame(index=price.index)
+        fundamental["BPS"] = pd.NA
+        fundamental["PER"] = pd.NA
+        fundamental["PBR"] = pd.NA
+        fundamental["EPS"] = pd.NA
+        fundamental["추정EPS"] = pd.NA
+
+    # ----- 2-5. 데이터 병합 -----
+    df = price.join(inv, how="left").join(short_bal, how="left").join(fundamental, how="left")
 
     df["티커"] = ticker
     df["종목명"] = stock.get_market_ticker_name(ticker)
@@ -91,6 +114,7 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     # index(날짜)를 컬럼으로
     df = df.reset_index().rename(columns={"index": "날짜"})
     return df
+
 
 
 # ----------------------------------------
