@@ -8,13 +8,20 @@ ENV PYTHONUNBUFFERED True
 # Set the port for Cloud Run (default is 8080)
 ENV PORT 8080
 
-# Copy local code to the container image.
-ENV APP_HOME /app
-WORKDIR $APP_HOME
-COPY . ./
+# Set working directory
+WORKDIR /app
 
-# Install production dependencies.
+# Copy requirements first for better layer caching
+# This layer will only rebuild if requirements.txt changes
+COPY requirements.txt .
+
+# Install production dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy only necessary application files
+COPY main.py .
+COPY importstock.py .
+COPY tickers.json .
 
 # Run the web service on container startup
 # functions-framework will use the PORT environment variable

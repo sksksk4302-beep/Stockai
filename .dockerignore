@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Development files
+debug_stock.py
+research_pykrx.py
+verify_stock.py
+generate_tickers.py
+
+# Data files (not needed in container)
+*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+README.md
+
+# Docker
+Dockerfile
+.dockerignore
