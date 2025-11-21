@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY importstock.py .
 COPY tickers.json .
+COPY bigquery_client.py .
+COPY config.py .
+COPY schema/ ./schema/
 
 # Run the web service on container startup
 # functions-framework will use the PORT environment variable
