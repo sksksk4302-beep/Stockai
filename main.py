@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import os
+import json
 
 try:
     from google.cloud import storage
@@ -183,8 +184,16 @@ def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
         print(f"❌ GCS 업로드 실패: {e}")
 
 # ----------------------------------------
-# 5. 메인 로직 (Cloud Functions 진입점)
+# 4. 티커 목록 로드
 # ----------------------------------------
+def load_tickers():
+    try:
+        with open('tickers.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading tickers.json: {e}")
+        return []
+
 # ----------------------------------------
 # 5. 메인 로직 (Cloud Functions 진입점)
 # ----------------------------------------
@@ -215,7 +224,7 @@ def main_process(ticker="005930"):
         print(f"🆕 신규 데이터. 최근 30일 데이터를 수집합니다.")
 
     # 미래 날짜인 경우 (이미 최신 데이터가 있는 경우)
-    if start > today:
+    if start.date() > today.date():
         print("✅ 이미 최신 데이터가 적재되어 있습니다.")
         return f"Already up to date: {ticker}"
 
@@ -225,8 +234,12 @@ def main_process(ticker="005930"):
     try:
         df_detail = fetch_one_ticker(ticker, start, today)
         
+        # 휴장일(거래량 0) 및 데이터 없는 날 제거
+        if not df_detail.empty:
+            df_detail = df_detail[df_detail['거래량'] > 0]
+        
         if df_detail.empty:
-            print("⚠️ 수집된 데이터가 없습니다 (휴장일 등).")
+            print("⚠️ 수집된 데이터가 없습니다 (휴장일 또는 이미 최신).")
         else:
             df_detail = df_detail.sort_values("날짜", ascending=False)
             
@@ -261,20 +274,51 @@ def main_process(ticker="005930"):
 
 # Cloud Functions (HTTP Trigger)
 def cloud_function_entry(request):
-    # 요청에서 티커 파라미터 확인 (기본값: 삼성전자)
+    # 요청에서 티커 파라미터 확인
     request_json = request.get_json(silent=True)
     request_args = request.args
 
-    ticker = "005930"
+    ticker = None
     if request_json and 'ticker' in request_json:
         ticker = request_json['ticker']
     elif request_args and 'ticker' in request_args:
         ticker = request_args['ticker']
         
-    return main_process(ticker)
+    if ticker:
+        # 특정 티커만 처리
+        return main_process(ticker)
+    else:
+        # 티커가 없으면 전체 티커 처리
+        tickers = load_tickers()
+        results = []
+        print(f"🚀 전체 {len(tickers)}개 종목 처리를 시작합니다.")
+        
+        for t in tickers:
+            code = t['code']
+            name = t['name']
+            print(f"\n--- Processing {name} ({code}) ---")
+            try:
+                result = main_process(code)
+                results.append(f"{name}: {result}")
+            except Exception as e:
+                print(f"Error processing {name}: {e}")
+                results.append(f"{name}: Error")
+                
+        return "\n".join(results)
 
 # 로컬 실행용
 if __name__ == "__main__":
-    user_input = input("티커 코드를 입력하세요 (예: 005930, 엔터치면 기본값): ").strip()
-    target_ticker = user_input if user_input else "005930"
-    main_process(target_ticker)
+    # 변경된 로직에 따라, user_input이 없으면 전체 티커 실행, 있으면 해당 티커 실행
+    user_input = input("티커 코드를 입력하세요 (예: 005930, 엔터치면 전체 티커): ").strip()
+    if user_input:
+        main_process(user_input)
+    else:
+        # Mock request for cloud_function_entry to simulate no 'ticker' parameter
+        class MockRequest:
+            def get_json(self, silent=True):
+                return None
+            @property
+            def args(self):
+                return {} # Return an empty dict for args when no ticker is specified
+        
+        print(cloud_function_entry(MockRequest()))
