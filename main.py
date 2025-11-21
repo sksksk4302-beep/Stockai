@@ -35,86 +35,203 @@ def get_kospi_top50(date: datetime = None) -> pd.DataFrame:
 # ----------------------------------------
 def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFrame:
     """
-    특정 티커에 대해:
-      - 일별 종가, 종가 전일비
-      - 거래량, 거래량 전일비
-      - 투자자별 매매동향(개인, 외국인, 기관)
-      - 공매도잔고(=대차잔고 비슷하게 사용), 전일비
-      - 펀더멘털 지표 (PER, EPS, 추정EPS, PBR, BPS)
-    를 모두 합쳐서 DataFrame으로 반환
+    특정 티커에 대해 다음 데이터를 수집:
+      - OHLCV (시가, 고가, 저가, 종가, 거래량)
+      - 투자자별 순매수 (개인, 외국인, 기관 세부)
+      - 공매도 데이터
+      - 펀더멘털 지표 (PER, PBR, EPS, BPS, 시가총액)
+      - KOSPI 지수
+      - 기술적 지표 (MA, RSI, MACD, Bollinger Bands, ATR 등)
     """
+    import pandas_ta as ta
+    
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
 
-    # ----- 2-1. 가격/거래량 (OHLCV) -----
-    price = stock.get_market_ohlcv_by_date(start_str, end_str, ticker)
-    # 필요한 컬럼만 사용
-    price = price[["종가", "거래량"]].copy()
-    price["종가전일비"] = price["종가"].diff()
-    price["거래량전일비"] = price["거래량"].diff()
-
-    # ----- 2-2. 투자자별 매매동향 (순매수 거래대금 기준) -----
-    # 컬럼 예: '개인', '외국인', '기관합계', '기타법인', ...
-    inv = stock.get_market_trading_value_by_date(start_str, end_str, ticker)
-
-    # 방어적으로 컬럼 체크
-    cols = inv.columns
-    col_individual = "개인"
-    col_foreign = "외국인" if "외국인" in cols else "외국인합계"
-    col_institution = "기관합계" if "기관합계" in cols else "기관"
-
-    inv = inv[[col_individual, col_foreign, col_institution]].copy()
-    
-    # 1만 단위로 나누고 올림 처리
-    inv = inv / 10000
-    inv = np.ceil(inv)
-
-    inv.columns = ["개인순매수", "외국인순매수", "기관순매수"]
-
-    # ----- 2-3. 공매도 잔고 (대차잔고 유사) -----
-    # 공매도잔고, 상장주식수, 공매도금액, 시가총액, 비중
+    # 1. OHLCV 데이터
     try:
-        short_bal = stock.get_shorting_balance_by_date(start_str, end_str, ticker)
-        short_bal = short_bal[["공매도잔고"]].copy()
-        short_bal.rename(columns={"공매도잔고": "대차잔고"}, inplace=True)
-        short_bal["대차잔고전일비"] = short_bal["대차잔고"].diff()
-    except Exception:
-        # 일부 종목/기간은 공매도 데이터가 없을 수 있음 → NaN으로 처리
-        short_bal = pd.DataFrame(index=price.index)
-        short_bal["대차잔고"] = pd.NA
-        short_bal["대차잔고전일비"] = pd.NA
-
-    # ----- 2-4. 펀더멘털 지표 (PER, EPS, PBR, BPS, EPS 추정치) -----
-    try:
-        # get_market_fundamental_by_date: BPS, PER, PBR, EPS, DIV, DPS 제공
-        fundamental = stock.get_market_fundamental_by_date(start_str, end_str, ticker)
+        ohlcv = stock.get_market_ohlcv_by_date(start_str, end_str, ticker)
+        ohlcv = ohlcv[["시가", "고가", "저가", "종가", "거래량"]].copy()
+        ohlcv.columns = ["open", "high", "low", "close", "volume"]
         
-        # 필요한 컬럼만 선택
-        fundamental = fundamental[["BPS", "PER", "PBR", "EPS"]].copy()
+        # 전일비 및 등락률 계산
+        ohlcv["change"] = ohlcv["close"].diff()
+        ohlcv["fluctuation_rate"] = (ohlcv["change"] / ohlcv["close"].shift(1) * 100).round(2)
+        ohlcv["return_1d"] = ohlcv["fluctuation_rate"]  # 동일
         
-        # 추정 EPS는 pykrx에서 직접 제공하지 않으므로 일단 NULL로 설정
-        # 향후 다른 API나 크롤링으로 추가 가능
-        fundamental["추정EPS"] = pd.NA
+        # 거래대금 계산 (종가 * 거래량)
+        ohlcv["trading_value"] = ohlcv["close"] * ohlcv["volume"]
         
     except Exception as e:
-        print(f"Warning: Could not fetch fundamental data for {ticker}: {e}")
-        # 펀더멘털 데이터가 없는 경우 빈 DataFrame 생성
-        fundamental = pd.DataFrame(index=price.index)
-        fundamental["BPS"] = pd.NA
-        fundamental["PER"] = pd.NA
-        fundamental["PBR"] = pd.NA
-        fundamental["EPS"] = pd.NA
-        fundamental["추정EPS"] = pd.NA
+        print(f"  └ Error fetching OHLCV for {ticker}: {e}")
+        return pd.DataFrame()
 
-    # ----- 2-5. 데이터 병합 -----
-    df = price.join(inv, how="left").join(short_bal, how="left").join(fundamental, how="left")
+    # 2. 투자자별 매매동향 (세부 분류)
+    try:
+        inv = stock.get_market_trading_value_by_date(start_str, end_str, ticker)
+        
+        # pykrx 컬럼: 개인, 외국인, 기관합계, 금융투자, 보험, 투신, 사모, 은행, 기타금융, 연기금, 기타법인
+        inv_mapping = {
+            "개인": "individual_net",
+            "외국인": "foreign_net",
+            "기관합계": "institution_net",
+            "연기금": "pension_net",
+            "보험": "insurance_net",
+            "투신": "trust_net",
+            "기타금융": "etc_finance_net",
+            "은행": "bank_net",
+            "기타법인": "etc_corp_net"
+        }
+        
+        for kr_col, en_col in inv_mapping.items():
+            if kr_col in inv.columns:
+                ohlcv[en_col] = inv[kr_col]
+            else:
+                ohlcv[en_col] = pd.NA
+                
+    except Exception as e:
+        print(f"  └ Warning: Could not fetch investor trading for {ticker}: {e}")
+        for en_col in inv_mapping.values():
+            ohlcv[en_col] = pd.NA
 
-    df["티커"] = ticker
-    df["종목명"] = stock.get_market_ticker_name(ticker)
+    # 3. 공매도 데이터
+    try:
+        short = stock.get_shorting_balance_by_date(start_str, end_str, ticker)
+        ohlcv["short_volume"] = short["공매도잔고"] if "공매도잔고" in short.columns else pd.NA
+        ohlcv["short_value"] = short["공매도금액"] if "공매도금액" in short.columns else pd.NA
+        ohlcv["short_ratio"] = short["비중"] if "비중" in short.columns else pd.NA
+        
+        # 대차잔고 (주식 대여)
+        # Note: 실제로는 별도 API 필요, 일단 공매도 데이터로 대체
+        ohlcv["loan_balance"] = ohlcv["short_volume"]
+        ohlcv["loan_balance_change"] = ohlcv["loan_balance"].diff()
+        ohlcv["loan_balance_value"] = ohlcv["short_value"]
+        
+    except Exception as e:
+        print(f"  └ Warning: Could not fetch short selling data for {ticker}: {e}")
+        ohlcv["short_volume"] = pd.NA
+        ohlcv["short_value"] = pd.NA
+        ohlcv["short_ratio"] = pd.NA
+        ohlcv["loan_balance"] = pd.NA
+        ohlcv["loan_balance_change"] = pd.NA
+        ohlcv["loan_balance_value"] = pd.NA
 
+    # 4. 펀더멘털 & 시가총액
+    try:
+        fund = stock.get_market_fundamental_by_date(start_str, end_str, ticker)
+        ohlcv["per"] = fund["PER"] if "PER" in fund.columns else pd.NA
+        ohlcv["eps"] = fund["EPS"] if "EPS" in fund.columns else pd.NA
+        ohlcv["pbr"] = fund["PBR"] if "PBR" in fund.columns else pd.NA
+        ohlcv["bps"] = fund["BPS"] if "BPS" in fund.columns else pd.NA
+        
+        # 시가총액 = 종가 * 상장주식수 (상장주식수는 별도 조회 필요)
+        try:
+            cap = stock.get_market_cap_by_date(start_str, end_str, ticker)
+            ohlcv["market_cap"] = cap["시가총액"] if "시가총액" in cap.columns else pd.NA
+            ohlcv["shares_outstanding"] = cap["상장주식수"] if "상장주식수" in cap.columns else pd.NA
+        except:
+            ohlcv["market_cap"] = pd.NA
+            ohlcv["shares_outstanding"] = pd.NA
+            
+    except Exception as e:
+        print(f"  └ Warning: Could not fetch fundamental data for {ticker}: {e}")
+        ohlcv["per"] = pd.NA
+        ohlcv["eps"] = pd.NA
+        ohlcv["pbr"] = pd.NA
+        ohlcv["bps"] = pd.NA
+        ohlcv["market_cap"] = pd.NA
+        ohlcv["shares_outstanding"] = pd.NA
+
+    # 5. KOSPI 지수 데이터
+    try:
+        kospi = stock.get_index_ohlcv_by_date(start_str, end_str, "1001")  # KOSPI 코드
+        ohlcv["kospi_open"] = kospi["시가"]
+        ohlcv["kospi_high"] = kospi["고가"]
+        ohlcv["kospi_low"] = kospi["저가"]
+        ohlcv["kospi_close"] = kospi["종가"]
+        ohlcv["kospi_volume"] = kospi["거래량"]
+    except Exception as e:
+        print(f"  └ Warning: Could not fetch KOSPI index: {e}")
+        ohlcv["kospi_open"] = pd.NA
+        ohlcv["kospi_high"] = pd.NA
+        ohlcv["kospi_low"] = pd.NA
+        ohlcv["kospi_close"] = pd.NA
+        ohlcv["kospi_volume"] = pd.NA
+
+    # 6. 환율 (KRW/USD) - pykrx에 없으므로 일단 NULL
+    ohlcv["krw_usd"] = pd.NA
+
+    # 7. 기술적 지표 계산
+    try:
+        # 이동평균
+        ohlcv["ma5"] = ta.sma(ohlcv["close"], length=5)
+        ohlcv["ma20"] = ta.sma(ohlcv["close"], length=20)
+        ohlcv["ma60"] = ta.sma(ohlcv["close"], length=60)
+        ohlcv["ma120"] = ta.sma(ohlcv["close"], length=120)
+        
+        # 거래량 이동평균
+        ohlcv["volume_ma5"] = ta.sma(ohlcv["volume"], length=5)
+        ohlcv["volume_ma20"] = ta.sma(ohlcv["volume"], length=20)
+        
+        # 정규화 거래량
+        ohlcv["vol_norm"] = ohlcv["volume"] / ohlcv["volume_ma20"]
+        
+        # RSI
+        ohlcv["rsi_14"] = ta.rsi(ohlcv["close"], length=14)
+        
+        # MACD
+        macd_df = ta.macd(ohlcv["close"], fast=12, slow=26, signal=9)
+        if macd_df is not None and not macd_df.empty:
+            ohlcv["macd"] = macd_df[f"MACD_12_26_9"]
+            ohlcv["macd_signal"] = macd_df[f"MACDs_12_26_9"]
+            ohlcv["macd_hist"] = macd_df[f"MACDh_12_26_9"]
+        else:
+            ohlcv["macd"] = pd.NA
+            ohlcv["macd_signal"] = pd.NA
+            ohlcv["macd_hist"] = pd.NA
+        
+        # Bollinger Bands
+        bb_df = ta.bbands(ohlcv["close"], length=20, std=2)
+        if bb_df is not None and not bb_df.empty:
+            ohlcv["bb_lower"] = bb_df[f"BBL_20_2.0"]
+            ohlcv["bb_middle"] = bb_df[f"BBM_20_2.0"]
+            ohlcv["bb_upper"] = bb_df[f"BBU_20_2.0"]
+            ohlcv["bb_width"] = bb_df[f"BBB_20_2.0"]  # Bandwidth
+        else:
+            ohlcv["bb_lower"] = pd.NA
+            ohlcv["bb_middle"] = pd.NA
+            ohlcv["bb_upper"] = pd.NA
+            ohlcv["bb_width"] = pd.NA
+        
+        # ATR
+        ohlcv["atr_14"] = ta.atr(ohlcv["high"], ohlcv["low"], ohlcv["close"], length=14)
+        
+        # ROC & Momentum
+        ohlcv["roc_10"] = ta.roc(ohlcv["close"], length=10)
+        ohlcv["momentum_10"] = ta.mom(ohlcv["close"], length=10)
+        
+        # Stochastic
+        stoch_df = ta.stoch(ohlcv["high"], ohlcv["low"], ohlcv["close"], k=14, d=3, smooth_k=3)
+        if stoch_df is not None and not stoch_df.empty:
+            ohlcv["stoch_k"] = stoch_df[f"STOCHk_14_3_3"]
+            ohlcv["stoch_d"] = stoch_df[f"STOCHd_14_3_3"]
+        else:
+            ohlcv["stoch_k"] = pd.NA
+            ohlcv["stoch_d"] = pd.NA
+            
+    except Exception as e:
+        print(f"  └ Warning: Error calculating technical indicators for {ticker}: {e}")
+
+    # 8. 메타데이터 추가
+    ohlcv["ticker"] = ticker
+    ohlcv["name"] = stock.get_market_ticker_name(ticker)
+    
     # index(날짜)를 컬럼으로
-    df = df.reset_index().rename(columns={"index": "날짜"})
-    return df
+    ohlcv = ohlcv.reset_index().rename(columns={"index": "날짜", "날짜": "date"})
+    if "날짜" in ohlcv.columns and "date" not in ohlcv.columns:
+        ohlcv = ohlcv.rename(columns={"날짜": "date"})
+    
+    return ohlcv
 
 
 
@@ -245,7 +362,7 @@ def process_ticker_data(ticker, bq):
         
         # 휴장일(거래량 0) 및 데이터 없는 날 제거
         if not df_detail.empty:
-            df_detail = df_detail[df_detail['거래량'] > 0]
+            df_detail = df_detail[df_detail['volume'] > 0]
         
         if df_detail.empty:
             print("  └ ⚠️ 수집된 데이터가 없습니다 (휴장일 등).")

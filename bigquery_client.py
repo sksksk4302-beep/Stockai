@@ -80,29 +80,8 @@ class BigQueryClient:
             print("DataFrame is empty, skipping upload.")
             return
 
-        # Map columns to BigQuery schema names
-        column_mapping = {
-            "날짜": "date",
-            "티커": "ticker",
-            "종목명": "name",
-            "종가": "close",
-            "종가전일비": "close_diff",
-            "거래량": "volume",
-            "거래량전일비": "volume_diff",
-            "개인순매수": "individual_net_buy",
-            "외국인순매수": "foreign_net_buy",
-            "기관순매수": "institution_net_buy",
-            "대차잔고": "short_balance",
-            "대차잔고전일비": "short_balance_diff",
-            "PER": "per",
-            "EPS": "eps",
-            "추정EPS": "estimated_eps",
-            "PBR": "pbr",
-            "BPS": "bps"
-        }
-        
-        # Rename columns
-        df_upload = df.rename(columns=column_mapping)
+        # DataFrame already has English column names from fetch_one_ticker
+        df_upload = df.copy()
         
         # Ensure all schema columns exist in DataFrame (fill with None if missing)
         schema = self._load_schema()

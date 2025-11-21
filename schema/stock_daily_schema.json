@@ -18,16 +18,28 @@
         "description": "Stock name"
     },
     {
+        "name": "open",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Opening price"
+    },
+    {
+        "name": "high",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "High price"
+    },
+    {
+        "name": "low",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Low price"
+    },
+    {
         "name": "close",
         "type": "INTEGER",
         "mode": "NULLABLE",
         "description": "Closing price"
-    },
-    {
-        "name": "close_diff",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Price change from previous day"
     },
     {
         "name": "volume",
@@ -36,40 +48,136 @@
         "description": "Trading volume"
     },
     {
-        "name": "volume_diff",
+        "name": "change",
         "type": "INTEGER",
         "mode": "NULLABLE",
-        "description": "Volume change from previous day"
+        "description": "Price change from previous day"
     },
     {
-        "name": "individual_net_buy",
-        "type": "INTEGER",
+        "name": "fluctuation_rate",
+        "type": "FLOAT",
         "mode": "NULLABLE",
-        "description": "Net buying by individuals (10k KRW)"
+        "description": "Fluctuation rate (%)"
     },
     {
-        "name": "foreign_net_buy",
-        "type": "INTEGER",
+        "name": "return_1d",
+        "type": "FLOAT",
         "mode": "NULLABLE",
-        "description": "Net buying by foreigners (10k KRW)"
+        "description": "1-day return (%)"
     },
     {
-        "name": "institution_net_buy",
-        "type": "INTEGER",
+        "name": "trading_value",
+        "type": "BIGINT",
         "mode": "NULLABLE",
-        "description": "Net buying by institutions (10k KRW)"
+        "description": "Total trading value (KRW)"
     },
     {
-        "name": "short_balance",
-        "type": "INTEGER",
+        "name": "vol_norm",
+        "type": "FLOAT",
         "mode": "NULLABLE",
-        "description": "Short selling balance"
+        "description": "Normalized volume (volume / 20-day avg)"
     },
     {
-        "name": "short_balance_diff",
+        "name": "individual_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Individual investors net trading value (KRW)"
+    },
+    {
+        "name": "foreign_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Foreign investors net trading value (KRW)"
+    },
+    {
+        "name": "institution_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Institutional investors net trading value (KRW)"
+    },
+    {
+        "name": "pension_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Pension funds net trading value (KRW)"
+    },
+    {
+        "name": "insurance_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Insurance companies net trading value (KRW)"
+    },
+    {
+        "name": "trust_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Investment trust net trading value (KRW)"
+    },
+    {
+        "name": "etc_finance_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Other financial institutions net trading value (KRW)"
+    },
+    {
+        "name": "bank_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Banks net trading value (KRW)"
+    },
+    {
+        "name": "etc_corp_net",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Other corporations net trading value (KRW)"
+    },
+    {
+        "name": "short_volume",
         "type": "INTEGER",
         "mode": "NULLABLE",
-        "description": "Short selling balance change"
+        "description": "Short selling volume (shares)"
+    },
+    {
+        "name": "short_value",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Short selling value (KRW)"
+    },
+    {
+        "name": "short_ratio",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Short selling ratio (%)"
+    },
+    {
+        "name": "loan_balance",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance (shares)"
+    },
+    {
+        "name": "loan_balance_change",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance change (shares)"
+    },
+    {
+        "name": "loan_balance_value",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance value (KRW)"
+    },
+    {
+        "name": "market_cap",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Market capitalization (KRW)"
+    },
+    {
+        "name": "shares_outstanding",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Total shares outstanding"
     },
     {
         "name": "per",
@@ -84,12 +192,6 @@
         "description": "Earnings Per Share"
     },
     {
-        "name": "estimated_eps",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Estimated Earnings Per Share"
-    },
-    {
         "name": "pbr",
         "type": "FLOAT",
         "mode": "NULLABLE",
@@ -100,5 +202,155 @@
         "type": "FLOAT",
         "mode": "NULLABLE",
         "description": "Book Value Per Share"
+    },
+    {
+        "name": "kospi_open",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index opening"
+    },
+    {
+        "name": "kospi_high",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index high"
+    },
+    {
+        "name": "kospi_low",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index low"
+    },
+    {
+        "name": "kospi_close",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index close"
+    },
+    {
+        "name": "kospi_volume",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index trading volume"
+    },
+    {
+        "name": "krw_usd",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KRW/USD exchange rate"
+    },
+    {
+        "name": "ma5",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "5-day Moving Average"
+    },
+    {
+        "name": "ma20",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "20-day Moving Average"
+    },
+    {
+        "name": "ma60",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "60-day Moving Average"
+    },
+    {
+        "name": "ma120",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "120-day Moving Average"
+    },
+    {
+        "name": "volume_ma5",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "5-day Volume Moving Average"
+    },
+    {
+        "name": "volume_ma20",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "20-day Volume Moving Average"
+    },
+    {
+        "name": "rsi_14",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "14-day Relative Strength Index"
+    },
+    {
+        "name": "macd",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD (12, 26)"
+    },
+    {
+        "name": "macd_signal",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD Signal Line (9)"
+    },
+    {
+        "name": "macd_hist",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD Histogram"
+    },
+    {
+        "name": "bb_upper",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Upper (20, 2σ)"
+    },
+    {
+        "name": "bb_middle",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Middle (20-day MA)"
+    },
+    {
+        "name": "bb_lower",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Lower (20, 2σ)"
+    },
+    {
+        "name": "bb_width",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Width (%)"
+    },
+    {
+        "name": "atr_14",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "14-day Average True Range"
+    },
+    {
+        "name": "roc_10",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "10-day Rate of Change (%)"
+    },
+    {
+        "name": "momentum_10",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "10-day Momentum"
+    },
+    {
+        "name": "stoch_k",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Stochastic %K (14, 3, 3)"
+    },
+    {
+        "name": "stoch_d",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Stochastic %D (14, 3, 3)"
     }
 ]

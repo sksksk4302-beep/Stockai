@@ -5,3 +5,5 @@ google-cloud-storage
 functions-framework
 google-cloud-bigquery
 db-dtypes
+pandas-ta
+
