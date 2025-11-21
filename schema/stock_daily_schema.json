@@ -1,0 +1,104 @@
+[
+    {
+        "name": "date",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Trading date"
+    },
+    {
+        "name": "ticker",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Stock ticker code"
+    },
+    {
+        "name": "name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Stock name"
+    },
+    {
+        "name": "close",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Closing price"
+    },
+    {
+        "name": "close_diff",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Price change from previous day"
+    },
+    {
+        "name": "volume",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Trading volume"
+    },
+    {
+        "name": "volume_diff",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Volume change from previous day"
+    },
+    {
+        "name": "individual_net_buy",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Net buying by individuals (10k KRW)"
+    },
+    {
+        "name": "foreign_net_buy",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Net buying by foreigners (10k KRW)"
+    },
+    {
+        "name": "institution_net_buy",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Net buying by institutions (10k KRW)"
+    },
+    {
+        "name": "short_balance",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Short selling balance"
+    },
+    {
+        "name": "short_balance_diff",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Short selling balance change"
+    },
+    {
+        "name": "per",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Price-to-Earnings Ratio"
+    },
+    {
+        "name": "eps",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Earnings Per Share"
+    },
+    {
+        "name": "estimated_eps",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Estimated Earnings Per Share"
+    },
+    {
+        "name": "pbr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Price-to-Book Ratio"
+    },
+    {
+        "name": "bps",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Book Value Per Share"
+    }
+]

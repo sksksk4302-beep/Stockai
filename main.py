@@ -185,35 +185,70 @@ def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
 # ----------------------------------------
 # 5. 메인 로직 (Cloud Functions 진입점)
 # ----------------------------------------
+# ----------------------------------------
+# 5. 메인 로직 (Cloud Functions 진입점)
+# ----------------------------------------
+from bigquery_client import BigQueryClient
+
 def main_process(ticker="005930"):
     print(f"\n▶ {ticker} 데이터 수집 및 분석 중...")
 
-    # 1. 상세 데이터 수집 (한 달치)
+    # BigQuery 클라이언트 초기화
+    bq = BigQueryClient()
+    bq.create_dataset_if_not_exists()
+    bq.create_table_if_not_exists()
+    bq.update_schema_if_needed()
+
+    # 1. 수집 기간 설정
     today = datetime.today()
-    start = today - timedelta(days=30)
     
+    # BigQuery에서 마지막 적재일 확인
+    last_date = bq.get_latest_date(ticker)
+    
+    if last_date:
+        # 데이터가 있으면 마지막 날짜 다음날부터 수집
+        start = datetime.combine(last_date, datetime.min.time()) + timedelta(days=1)
+        print(f"🔄 기존 데이터 발견 (마지막 날짜: {last_date}). {start.date()} 부터 수집합니다.")
+    else:
+        # 데이터가 없으면 초기 30일 적재
+        start = today - timedelta(days=30)
+        print(f"🆕 신규 데이터. 최근 30일 데이터를 수집합니다.")
+
+    # 미래 날짜인 경우 (이미 최신 데이터가 있는 경우)
+    if start > today:
+        print("✅ 이미 최신 데이터가 적재되어 있습니다.")
+        return f"Already up to date: {ticker}"
+
+    # 2. 상세 데이터 수집
     filename = f"{ticker}_data.csv"
     
     try:
         df_detail = fetch_one_ticker(ticker, start, today)
-        df_detail = df_detail.sort_values("날짜", ascending=False)
-        df_detail.to_csv(filename, index=False, encoding="utf-8-sig")
-        print(f"💾 상세 데이터 저장 완료: {filename}")
         
-        # GCS 업로드 (환경 변수에서 버킷 이름 가져오기)
-        bucket_name = os.environ.get("BUCKET_NAME")
-        if bucket_name:
-            # GCS에는 날짜별 폴더로 정리해서 저장 (예: 20231025/005930_data.csv)
-            today_str = today.strftime("%Y%m%d")
-            destination_blob_name = f"{today_str}/{filename}"
-            upload_to_gcs(bucket_name, filename, destination_blob_name)
+        if df_detail.empty:
+            print("⚠️ 수집된 데이터가 없습니다 (휴장일 등).")
         else:
-            print("⚠️ BUCKET_NAME 환경 변수가 설정되지 않아 GCS 업로드를 건너뜁니다.")
+            df_detail = df_detail.sort_values("날짜", ascending=False)
+            
+            # CSV 저장 (옵션)
+            df_detail.to_csv(filename, index=False, encoding="utf-8-sig")
+            print(f"💾 상세 데이터 CSV 저장 완료: {filename}")
+            
+            # BigQuery 업로드
+            bq.upload_dataframe(df_detail)
+            
+            # GCS 업로드 (기존 로직 유지)
+            bucket_name = os.environ.get("BUCKET_NAME")
+            if bucket_name:
+                today_str = today.strftime("%Y%m%d")
+                destination_blob_name = f"{today_str}/{filename}"
+                upload_to_gcs(bucket_name, filename, destination_blob_name)
             
     except Exception as e:
-        print(f"❌ 상세 데이터 수집 중 오류 발생: {e}")
+        print(f"❌ 상세 데이터 수집/적재 중 오류 발생: {e}")
+        # 오류 발생 시에도 요약 정보는 출력하도록 진행
 
-    # 2. 요약 정보 수집 및 출력
+    # 3. 요약 정보 수집 및 출력
     summary = get_ticker_summary(ticker)
     
     print("\n[ 요약 정보 ]")
