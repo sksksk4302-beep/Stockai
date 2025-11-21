@@ -1,7 +1,17 @@
 steps:
-  # Build the container image
+  # Pull the previous image to use as cache
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot', '.']
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot:latest || exit 0']
+
+  # Build the container image using cache
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot',
+      '--cache-from', 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot:latest',
+      '.'
+    ]
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot']
