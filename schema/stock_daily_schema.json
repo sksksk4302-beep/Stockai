@@ -352,5 +352,77 @@
         "type": "FLOAT",
         "mode": "NULLABLE",
         "description": "Stochastic %D (14, 3, 3)"
+    },
+    {
+        "name": "day_of_week",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Day of week (0=Monday, 4=Friday)"
+    },
+    {
+        "name": "week_of_month",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Week number within month (1-5)"
+    },
+    {
+        "name": "month",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Month (1-12)"
+    },
+    {
+        "name": "is_month_end",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "Is last trading day of month"
+    },
+    {
+        "name": "return_vs_kospi",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Return difference vs KOSPI (%)"
+    },
+    {
+        "name": "price_range",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Daily price range (high-low)/close"
+    },
+    {
+        "name": "upper_shadow",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Upper shadow ratio (upper wick)"
+    },
+    {
+        "name": "lower_shadow",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Lower shadow ratio (lower wick)"
+    },
+    {
+        "name": "body_ratio",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Candle body ratio |open-close|/close"
+    },
+    {
+        "name": "volume_ratio",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Volume / 20-day average"
+    },
+    {
+        "name": "foreign_participation",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Foreign net / trading value (%)"
+    },
+    {
+        "name": "institutional_participation",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Institutional net / trading value (%)"
     }
 ]

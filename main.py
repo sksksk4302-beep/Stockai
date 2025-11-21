@@ -269,6 +269,71 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     elif "날짜" in ohlcv.columns:
         ohlcv = ohlcv.rename(columns={"날짜": "date"})
     
+    # 9. 파생 피처 계산
+    try:
+        # 시간 관련 피처
+        ohlcv["day_of_week"] = pd.to_datetime(ohlcv["date"]).dt.dayofweek  # 0=Monday
+        ohlcv["week_of_month"] = (pd.to_datetime(ohlcv["date"]).dt.day - 1) // 7 + 1
+        ohlcv["month"] = pd.to_datetime(ohlcv["date"]).dt.month
+        
+        # 월말 여부 (해당 월의 마지막 거래일)
+        ohlcv["is_month_end"] = False
+        if len(ohlcv) > 0:
+            for i in range(len(ohlcv) - 1):
+                curr_month = pd.to_datetime(ohlcv.iloc[i]["date"]).month
+                next_month = pd.to_datetime(ohlcv.iloc[i+1]["date"]).month
+                if curr_month != next_month:
+                    ohlcv.at[i, "is_month_end"] = True
+            # 마지막 행도 체크
+            if i == len(ohlcv) - 2:
+                ohlcv.at[len(ohlcv)-1, "is_month_end"] = True
+    except Exception as e:
+        print(f"  └ Warning: Time features calculation error: {e}")
+        ohlcv["day_of_week"] = pd.NA
+        ohlcv["week_of_month"] = pd.NA
+        ohlcv["month"] = pd.NA
+        ohlcv["is_month_end"] = False
+    
+    try:
+        # KOSPI 대비 수익률
+        kospi_return = ohlcv["kospi_close"].pct_change() * 100
+        ohlcv["return_vs_kospi"] = ohlcv["return_1d"] - kospi_return
+    except:
+        ohlcv["return_vs_kospi"] = pd.NA
+    
+    try:
+        # 가격 범위 (변동폭)
+        ohlcv["price_range"] = (ohlcv["high"] - ohlcv["low"]) / ohlcv["close"]
+        
+        # 캔들 패턴 분석
+        body_top = ohlcv[["open", "close"]].max(axis=1)
+        body_bottom = ohlcv[["open", "close"]].min(axis=1)
+        
+        ohlcv["upper_shadow"] = (ohlcv["high"] - body_top) / ohlcv["close"]
+        ohlcv["lower_shadow"] = (body_bottom - ohlcv["low"]) / ohlcv["close"]
+        ohlcv["body_ratio"] = abs(ohlcv["open"] - ohlcv["close"]) / ohlcv["close"]
+    except Exception as e:
+        print(f"  └ Warning: Price pattern calculation error: {e}")
+        ohlcv["price_range"] = pd.NA
+        ohlcv["upper_shadow"] = pd.NA
+        ohlcv["lower_shadow"] = pd.NA
+        ohlcv["body_ratio"] = pd.NA
+    
+    try:
+        # 거래량 비율 (vol_norm과 동일)
+        ohlcv["volume_ratio"] = ohlcv["vol_norm"]
+    except:
+        ohlcv["volume_ratio"] = pd.NA
+    
+    try:
+        # 투자자 참여도 (순매수 / 거래대금)
+        ohlcv["foreign_participation"] = (ohlcv["foreign_net"] / ohlcv["trading_value"] * 100).replace([np.inf, -np.inf], pd.NA)
+        ohlcv["institutional_participation"] = (ohlcv["institution_net"] / ohlcv["trading_value"] * 100).replace([np.inf, -np.inf], pd.NA)
+    except Exception as e:
+        print(f"  └ Warning: Participation calculation error: {e}")
+        ohlcv["foreign_participation"] = pd.NA
+        ohlcv["institutional_participation"] = pd.NA
+    
     return ohlcv
 
 
