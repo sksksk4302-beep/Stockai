@@ -2,3 +2,6 @@ steps:
   - name: 'python:3.10'
     entrypoint: 'pip'
     args: ['install', '-r', 'requirements.txt']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
