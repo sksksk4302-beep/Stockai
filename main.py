@@ -197,16 +197,29 @@ def load_tickers():
 # ----------------------------------------
 # 5. 메인 로직 (Cloud Functions 진입점)
 # ----------------------------------------
+# ----------------------------------------
+# 5. 메인 로직 (Cloud Functions 진입점)
+# ----------------------------------------
 from bigquery_client import BigQueryClient
 
-def main_process(ticker="005930"):
-    print(f"\n▶ {ticker} 데이터 수집 및 분석 중...")
+# 전역 클라이언트 (콜드 스타트 시에만 초기화)
+bq_client = None
 
-    # BigQuery 클라이언트 초기화
-    bq = BigQueryClient()
-    bq.create_dataset_if_not_exists()
-    bq.create_table_if_not_exists()
-    bq.update_schema_if_needed()
+def get_bq_client():
+    global bq_client
+    if bq_client is None:
+        bq_client = BigQueryClient()
+        bq_client.create_dataset_if_not_exists()
+        bq_client.create_table_if_not_exists()
+        bq_client.update_schema_if_needed()
+    return bq_client
+
+def process_ticker_data(ticker, bq):
+    """
+    개별 티커의 데이터를 수집하여 DataFrame을 반환합니다.
+    업로드는 하지 않습니다.
+    """
+    print(f"\n▶ {ticker} 데이터 수집 중...")
 
     # 1. 수집 기간 설정
     today = datetime.today()
@@ -215,22 +228,18 @@ def main_process(ticker="005930"):
     last_date = bq.get_latest_date(ticker)
     
     if last_date:
-        # 데이터가 있으면 마지막 날짜 다음날부터 수집
         start = datetime.combine(last_date, datetime.min.time()) + timedelta(days=1)
-        print(f"🔄 기존 데이터 발견 (마지막 날짜: {last_date}). {start.date()} 부터 수집합니다.")
+        print(f"  └ 🔄 기존 데이터 발견 (Last: {last_date}). {start.date()} 부터 수집.")
     else:
-        # 데이터가 없으면 초기 30일 적재
         start = today - timedelta(days=30)
-        print(f"🆕 신규 데이터. 최근 30일 데이터를 수집합니다.")
+        print(f"  └ 🆕 신규 데이터. 최근 30일 수집.")
 
-    # 미래 날짜인 경우 (이미 최신 데이터가 있는 경우)
+    # 미래 날짜인 경우
     if start.date() > today.date():
-        print("✅ 이미 최신 데이터가 적재되어 있습니다.")
-        return f"Already up to date: {ticker}"
+        print("  └ ✅ 이미 최신입니다.")
+        return None
 
     # 2. 상세 데이터 수집
-    filename = f"{ticker}_data.csv"
-    
     try:
         df_detail = fetch_one_ticker(ticker, start, today)
         
@@ -239,86 +248,101 @@ def main_process(ticker="005930"):
             df_detail = df_detail[df_detail['거래량'] > 0]
         
         if df_detail.empty:
-            print("⚠️ 수집된 데이터가 없습니다 (휴장일 또는 이미 최신).")
-        else:
-            df_detail = df_detail.sort_values("날짜", ascending=False)
+            print("  └ ⚠️ 수집된 데이터가 없습니다 (휴장일 등).")
+            return None
             
-            # CSV 저장 (옵션)
-            df_detail.to_csv(filename, index=False, encoding="utf-8-sig")
-            print(f"💾 상세 데이터 CSV 저장 완료: {filename}")
-            
-            # BigQuery 업로드
-            bq.upload_dataframe(df_detail)
-            
-            # GCS 업로드 (기존 로직 유지)
-            bucket_name = os.environ.get("BUCKET_NAME")
-            if bucket_name:
-                today_str = today.strftime("%Y%m%d")
-                destination_blob_name = f"{today_str}/{filename}"
-                upload_to_gcs(bucket_name, filename, destination_blob_name)
+        return df_detail
             
     except Exception as e:
-        print(f"❌ 상세 데이터 수집/적재 중 오류 발생: {e}")
-        # 오류 발생 시에도 요약 정보는 출력하도록 진행
+        print(f"  └ ❌ 수집 중 오류 발생: {e}")
+        return None
 
-    # 3. 요약 정보 수집 및 출력
-    summary = get_ticker_summary(ticker)
+def main_process(ticker="005930"):
+    """
+    단일 티커 처리 (기존 호환성 유지 및 테스트용)
+    """
+    bq = get_bq_client()
+    df = process_ticker_data(ticker, bq)
     
-    print("\n[ 요약 정보 ]")
-    print(f"PER      : {summary.get('PER')}")
-    print(f"PBR      : {summary.get('PBR')}")
-    print(f"52주 최고: {summary.get('52주최고')}")
-    print(f"52주 최저: {summary.get('52주최저')}")
+    if df is not None:
+        bq.upload_dataframe(df)
+        print(f"✅ {ticker} 업로드 완료 ({len(df)} rows)")
+        
+        # GCS 업로드 (옵션)
+        bucket_name = os.environ.get("BUCKET_NAME")
+        if bucket_name:
+            filename = f"{ticker}_data.csv"
+            df.to_csv(filename, index=False, encoding="utf-8-sig")
+            today_str = datetime.today().strftime("%Y%m%d")
+            upload_to_gcs(bucket_name, filename, f"{today_str}/{filename}")
+
+    # 요약 정보 출력
+    summary = get_ticker_summary(ticker)
+    print(f"[ {ticker} 요약 ] PER: {summary.get('PER')}, PBR: {summary.get('PBR')}")
     
     return f"Success: {ticker}"
 
 # Cloud Functions (HTTP Trigger)
 def cloud_function_entry(request):
-    # 요청에서 티커 파라미터 확인
+    bq = get_bq_client()
+    
+    # 요청 파싱
     request_json = request.get_json(silent=True)
     request_args = request.args
-
+    
     ticker = None
     if request_json and 'ticker' in request_json:
         ticker = request_json['ticker']
     elif request_args and 'ticker' in request_args:
         ticker = request_args['ticker']
         
+    # 1. 단일 티커 처리
     if ticker:
-        # 특정 티커만 처리
         return main_process(ticker)
+    
+    # 2. 전체 티커 일괄 처리 (Batch Processing)
     else:
-        # 티커가 없으면 전체 티커 처리
         tickers = load_tickers()
+        print(f"🚀 전체 {len(tickers)}개 종목 일괄 처리를 시작합니다.")
+        
+        all_dataframes = []
         results = []
-        print(f"🚀 전체 {len(tickers)}개 종목 처리를 시작합니다.")
         
         for t in tickers:
             code = t['code']
             name = t['name']
-            print(f"\n--- Processing {name} ({code}) ---")
+            
             try:
-                result = main_process(code)
-                results.append(f"{name}: {result}")
+                df = process_ticker_data(code, bq)
+                if df is not None:
+                    all_dataframes.append(df)
+                    results.append(f"{name}: Collected {len(df)} rows")
+                else:
+                    results.append(f"{name}: Up to date or No data")
             except Exception as e:
                 print(f"Error processing {name}: {e}")
                 results.append(f"{name}: Error")
-                
+        
+        # 일괄 업로드
+        if all_dataframes:
+            print(f"\n💾 총 {len(all_dataframes)}개 종목 데이터를 병합하여 BigQuery에 업로드합니다...")
+            merged_df = pd.concat(all_dataframes, ignore_index=True)
+            bq.upload_dataframe(merged_df)
+            print("✨ 전체 업로드 완료!")
+        else:
+            print("\n✨ 업로드할 데이터가 없습니다.")
+            
         return "\n".join(results)
 
-# 로컬 실행용
 if __name__ == "__main__":
-    # 변경된 로직에 따라, user_input이 없으면 전체 티커 실행, 있으면 해당 티커 실행
-    user_input = input("티커 코드를 입력하세요 (예: 005930, 엔터치면 전체 티커): ").strip()
+    # 로컬 테스트
+    user_input = input("티커 입력 (엔터=전체): ").strip()
     if user_input:
         main_process(user_input)
     else:
-        # Mock request for cloud_function_entry to simulate no 'ticker' parameter
+        # Mock Request
         class MockRequest:
-            def get_json(self, silent=True):
-                return None
+            def get_json(self, silent=True): return None
             @property
-            def args(self):
-                return {} # Return an empty dict for args when no ticker is specified
-        
-        print(cloud_function_entry(MockRequest()))
+            def args(self): return {}
+        cloud_function_entry(MockRequest())

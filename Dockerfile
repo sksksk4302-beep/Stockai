@@ -20,7 +20,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only necessary application files
 COPY main.py .
-COPY importstock.py .
 COPY tickers.json .
 COPY bigquery_client.py .
 COPY config.py .
