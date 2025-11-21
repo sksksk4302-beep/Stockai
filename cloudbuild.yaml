@@ -7,7 +7,7 @@ steps:
     args: ['push', 'gcr.io/$PROJECT_ID/stock-ai-bot']
 
 options:
-  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
+  logging: CLOUD_LOGGING_ONLY
 
 images:
   - 'gcr.io/$PROJECT_ID/stock-ai-bot'
