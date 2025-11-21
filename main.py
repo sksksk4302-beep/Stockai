@@ -43,7 +43,7 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
       - KOSPI 지수
       - 기술적 지표 (MA, RSI, MACD, Bollinger Bands, ATR 등)
     """
-    import pandas_ta as ta
+    import ta
     
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
@@ -161,63 +161,55 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     # 6. 환율 (KRW/USD) - pykrx에 없으므로 일단 NULL
     ohlcv["krw_usd"] = pd.NA
 
-    # 7. 기술적 지표 계산
+    # 7. 기술적 지표 계산 (ta library 사용)
     try:
         # 이동평균
-        ohlcv["ma5"] = ta.sma(ohlcv["close"], length=5)
-        ohlcv["ma20"] = ta.sma(ohlcv["close"], length=20)
-        ohlcv["ma60"] = ta.sma(ohlcv["close"], length=60)
-        ohlcv["ma120"] = ta.sma(ohlcv["close"], length=120)
+        ohlcv["ma5"] = ta.trend.sma_indicator(ohlcv["close"], window=5)
+        ohlcv["ma20"] = ta.trend.sma_indicator(ohlcv["close"], window=20)
+        ohlcv["ma60"] = ta.trend.sma_indicator(ohlcv["close"], window=60)
+        ohlcv["ma120"] = ta.trend.sma_indicator(ohlcv["close"], window=120)
         
         # 거래량 이동평균
-        ohlcv["volume_ma5"] = ta.sma(ohlcv["volume"], length=5)
-        ohlcv["volume_ma20"] = ta.sma(ohlcv["volume"], length=20)
+        ohlcv["volume_ma5"] = ta.trend.sma_indicator(ohlcv["volume"], window=5)
+        ohlcv["volume_ma20"] = ta.trend.sma_indicator(ohlcv["volume"], window=20)
         
         # 정규화 거래량
         ohlcv["vol_norm"] = ohlcv["volume"] / ohlcv["volume_ma20"]
         
         # RSI
-        ohlcv["rsi_14"] = ta.rsi(ohlcv["close"], length=14)
+        ohlcv["rsi_14"] = ta.momentum.rsi(ohlcv["close"], window=14)
         
         # MACD
-        macd_df = ta.macd(ohlcv["close"], fast=12, slow=26, signal=9)
-        if macd_df is not None and not macd_df.empty:
-            ohlcv["macd"] = macd_df[f"MACD_12_26_9"]
-            ohlcv["macd_signal"] = macd_df[f"MACDs_12_26_9"]
-            ohlcv["macd_hist"] = macd_df[f"MACDh_12_26_9"]
-        else:
-            ohlcv["macd"] = pd.NA
-            ohlcv["macd_signal"] = pd.NA
-            ohlcv["macd_hist"] = pd.NA
+        macd = ta.trend.MACD(ohlcv["close"], window_fast=12, window_slow=26, window_sign=9)
+        ohlcv["macd"] = macd.macd()
+        ohlcv["macd_signal"] = macd.macd_signal()
+        ohlcv["macd_hist"] = macd.macd_diff()
         
         # Bollinger Bands
-        bb_df = ta.bbands(ohlcv["close"], length=20, std=2)
-        if bb_df is not None and not bb_df.empty:
-            ohlcv["bb_lower"] = bb_df[f"BBL_20_2.0"]
-            ohlcv["bb_middle"] = bb_df[f"BBM_20_2.0"]
-            ohlcv["bb_upper"] = bb_df[f"BBU_20_2.0"]
-            ohlcv["bb_width"] = bb_df[f"BBB_20_2.0"]  # Bandwidth
-        else:
-            ohlcv["bb_lower"] = pd.NA
-            ohlcv["bb_middle"] = pd.NA
-            ohlcv["bb_upper"] = pd.NA
-            ohlcv["bb_width"] = pd.NA
+        bb = ta.volatility.BollingerBands(ohlcv["close"], window=20, window_dev=2)
+        ohlcv["bb_upper"] = bb.bollinger_hband()
+        ohlcv["bb_middle"] = bb.bollinger_mavg()
+        ohlcv["bb_lower"] = bb.bollinger_lband()
+        ohlcv["bb_width"] = bb.bollinger_wband()
         
         # ATR
-        ohlcv["atr_14"] = ta.atr(ohlcv["high"], ohlcv["low"], ohlcv["close"], length=14)
+        ohlcv["atr_14"] = ta.volatility.average_true_range(
+            ohlcv["high"], ohlcv["low"], ohlcv["close"], window=14
+        )
         
-        # ROC & Momentum
-        ohlcv["roc_10"] = ta.roc(ohlcv["close"], length=10)
-        ohlcv["momentum_10"] = ta.mom(ohlcv["close"], length=10)
+        # ROC
+        ohlcv["roc_10"] = ta.momentum.roc(ohlcv["close"], window=10)
+        
+        # Momentum (간단 계산: close - close.shift(10))
+        ohlcv["momentum_10"] = ohlcv["close"] - ohlcv["close"].shift(10)
         
         # Stochastic
-        stoch_df = ta.stoch(ohlcv["high"], ohlcv["low"], ohlcv["close"], k=14, d=3, smooth_k=3)
-        if stoch_df is not None and not stoch_df.empty:
-            ohlcv["stoch_k"] = stoch_df[f"STOCHk_14_3_3"]
-            ohlcv["stoch_d"] = stoch_df[f"STOCHd_14_3_3"]
-        else:
-            ohlcv["stoch_k"] = pd.NA
-            ohlcv["stoch_d"] = pd.NA
+        stoch = ta.momentum.StochasticOscillator(
+            ohlcv["high"], ohlcv["low"], ohlcv["close"], 
+            window=14, smooth_window=3
+        )
+        ohlcv["stoch_k"] = stoch.stoch()
+        ohlcv["stoch_d"] = stoch.stoch_signal()
             
     except Exception as e:
         print(f"  └ Warning: Error calculating technical indicators for {ticker}: {e}")
