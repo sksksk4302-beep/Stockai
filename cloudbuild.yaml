@@ -6,6 +6,19 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot']
 
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'stockaibot'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot'
+      - '--region'
+      - 'us-central1'
+
+
 options:
   logging: CLOUD_LOGGING_ONLY
 
