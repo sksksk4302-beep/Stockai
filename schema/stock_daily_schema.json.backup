@@ -204,7 +204,201 @@
         "description": "Book Value Per Share"
     },
     {
-<<<<<<< HEAD
+        "name": "kospi_open",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index opening"
+    },
+    {
+        "name": "kospi_high",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index high"
+    },
+    {
+        "name": "kospi_low",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index low"
+    },
+    {
+        "name": "kospi_close",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index close"
+    },
+    {
+        "name": "kospi_volume",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "KOSPI index trading volume"
+    },
+    {
+        "name": "krw_usd",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "KRW/USD exchange rate"
+    },
+    {
+        "name": "ma5",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "5-day Moving Average"
+    },
+    {
+        "name": "ma20",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "20-day Moving Average"
+    },
+    {
+        "name": "ma60",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "60-day Moving Average"
+    },
+    {
+        "name": "ma120",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "120-day Moving Average"
+    },
+    {
+        "name": "volume_ma5",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "5-day Volume Moving Average"
+    },
+    {
+        "name": "volume_ma20",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "20-day Volume Moving Average"
+    },
+    {
+        "name": "rsi_14",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "14-day Relative Strength Index"
+    },
+    {
+        "name": "macd",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD (12, 26)"
+    },
+    {
+        "name": "macd_signal",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD Signal Line (9)"
+    },
+    {
+        "name": "macd_hist",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "MACD Histogram"
+    },
+    {
+        "name": "bb_upper",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Upper (20, 2σ)"
+    },
+    {
+        "name": "bb_middle",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Middle (20-day MA)"
+    },
+    {
+        "name": "bb_lower",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Lower (20, 2σ)"
+    },
+    {
+        "name": "bb_width",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Bollinger Band Width (%)"
+    },
+    {
+        "name": "atr_14",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "14-day Average True Range"
+    },
+    {
+        "name": "roc_10",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "10-day Rate of Change (%)"
+    },
+    {
+        "name": "momentum_10",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "10-day Momentum"
+    },
+    {
+        "description": "Short selling ratio (%)"
+    },
+    {
+        "name": "loan_balance",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance (shares)"
+    },
+    {
+        "name": "loan_balance_change",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance change (shares)"
+    },
+    {
+        "name": "loan_balance_value",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Stock loan balance value (KRW)"
+    },
+    {
+        "name": "market_cap",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Market capitalization (KRW)"
+    },
+    {
+        "name": "shares_outstanding",
+        "type": "BIGINT",
+        "mode": "NULLABLE",
+        "description": "Total shares outstanding"
+    },
+    {
+        "name": "per",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Price-to-Earnings Ratio"
+    },
+    {
+        "name": "eps",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Earnings Per Share"
+    },
+    {
+        "name": "pbr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Price-to-Book Ratio"
+    },
+    {
+        "name": "bps",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Book Value Per Share"
+    },
+    {
         "name": "kospi_open",
         "type": "FLOAT",
         "mode": "NULLABLE",
@@ -412,478 +606,7 @@
         "name": "volume_ratio",
         "type": "FLOAT",
         "mode": "NULLABLE",
-        "description": "Volume / 20-day average"
-    },
-    {
-        "name": "foreign_participation",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Foreign net / trading value (%)"
-    },
-    {
-        "name": "institutional_participation",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Institutional net / trading value (%)"
-    },
-    {
-=======
->>>>>>> 5ba74ae (Feat: Implement ML feature engineering and update BigQuery schema)
-        "name": "target_return_1d",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Next 1-day return (%) - PRIMARY TARGET"
-    },
-    {
-        "name": "target_return_3d",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Next 3-day return (%)"
-    },
-    {
-        "name": "target_return_5d",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Next 5-day return (%)"
-    },
-    {
-        "name": "target_close",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Next day close price"
-    },
-    {
-        "name": "target_direction",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Next day direction (1=up, 0=down)"
-    },
-    {
-        "name": "target_high_low_range",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Next day (high-low)/close ratio"
-    },
-    {
-        "name": "close_lag1",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 1 day ago"
-    },
-    {
-        "name": "close_lag2",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 2 days ago"
-    },
-    {
-        "name": "close_lag3",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 3 days ago"
-    },
-    {
-        "name": "close_lag5",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 5 days ago"
-    },
-    {
-        "name": "volume_lag1",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 1 day ago"
-    },
-    {
-        "name": "volume_lag2",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 2 days ago"
-    },
-    {
-        "name": "volume_lag3",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 3 days ago"
-    },
-    {
-        "name": "return_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 1 day ago (%)"
-    },
-    {
-        "name": "return_lag2",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 2 days ago (%)"
-    },
-    {
-        "name": "return_lag3",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 3 days ago (%)"
-    },
-    {
-        "name": "return_lag5",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 5 days ago (%)"
-    },
-    {
-        "name": "foreign_net_lag1",
-        "type": "BIGINT",
-        "mode": "NULLABLE",
-        "description": "Foreign net 1 day ago"
-    },
-    {
-        "name": "institution_net_lag1",
-        "type": "BIGINT",
-        "mode": "NULLABLE",
-        "description": "Institution net 1 day ago"
-    },
-    {
-        "name": "atr_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "ATR 1 day ago"
-    },
-    {
-        "name": "bb_width_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "BB width 1 day ago"
-    },
-    {
-        "name": "close_5d_min",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Min close in last 5 days"
-    },
-    {
-        "name": "close_5d_max",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Max close in last 5 days"
-    },
-    {
-        "name": "close_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of close in last 5 days"
-    },
-    {
-        "name": "volume_5d_mean",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Mean volume in last 5 days"
-    },
-    {
-        "name": "volume_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of volume in last 5 days"
-    },
-    {
-        "name": "return_5d_mean",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Mean return in last 5 days (%)"
-    },
-    {
-        "name": "return_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of return in last 5 days (volatility)"
-    },
-    {
-        "name": "close_20d_min",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Min close in last 20 days"
-    },
-    {
-        "name": "close_20d_max",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Max close in last 20 days"
-    },
-    {
-        "name": "return_20d_sharpe",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Sharpe ratio over last 20 days"
-    },
-    {
-        "name": "price_vs_ma5",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma5) / ma5 (%)"
-    },
-    {
-        "name": "price_vs_ma20",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma20) / ma20 (%)"
-    },
-    {
-        "name": "price_vs_ma60",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma60) / ma60 (%)"
-    },
-    {},
-    {
-        "name": "target_direction",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Next day direction (1=up, 0=down)"
-    },
-    {
-        "name": "target_high_low_range",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Next day (high-low)/close ratio"
-    },
-    {
-        "name": "close_lag1",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 1 day ago"
-    },
-    {
-        "name": "close_lag2",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 2 days ago"
-    },
-    {
-        "name": "close_lag3",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 3 days ago"
-    },
-    {
-        "name": "close_lag5",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Close price 5 days ago"
-    },
-    {
-        "name": "volume_lag1",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 1 day ago"
-    },
-    {
-        "name": "volume_lag2",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 2 days ago"
-    },
-    {
-        "name": "volume_lag3",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Volume 3 days ago"
-    },
-    {
-        "name": "return_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 1 day ago (%)"
-    },
-    {
-        "name": "return_lag2",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 2 days ago (%)"
-    },
-    {
-        "name": "return_lag3",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 3 days ago (%)"
-    },
-    {
-        "name": "return_lag5",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return 5 days ago (%)"
-    },
-    {
-        "name": "foreign_net_lag1",
-        "type": "BIGINT",
-        "mode": "NULLABLE",
-        "description": "Foreign net 1 day ago"
-    },
-    {
-        "name": "institution_net_lag1",
-        "type": "BIGINT",
-        "mode": "NULLABLE",
-        "description": "Institution net 1 day ago"
-    },
-    {
-        "name": "atr_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "ATR 1 day ago"
-    },
-    {
-        "name": "bb_width_lag1",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "BB width 1 day ago"
-    },
-    {
-        "name": "close_5d_min",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Min close in last 5 days"
-    },
-    {
-        "name": "close_5d_max",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Max close in last 5 days"
-    },
-    {
-        "name": "close_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of close in last 5 days"
-    },
-    {
-        "name": "volume_5d_mean",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Mean volume in last 5 days"
-    },
-    {
-        "name": "volume_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of volume in last 5 days"
-    },
-    {
-        "name": "return_5d_mean",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Mean return in last 5 days (%)"
-    },
-    {
-        "name": "return_5d_std",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Std of return in last 5 days (volatility)"
-    },
-    {
-        "name": "close_20d_min",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Min close in last 20 days"
-    },
-    {
-        "name": "close_20d_max",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Max close in last 20 days"
-    },
-    {
-        "name": "return_20d_sharpe",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Sharpe ratio over last 20 days"
-    },
-    {
-        "name": "price_vs_ma5",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma5) / ma5 (%)"
-    },
-    {
-        "name": "price_vs_ma20",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma20) / ma20 (%)"
-    },
-    {
-        "name": "price_vs_ma60",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "(close - ma60) / ma60 (%)"
-    },
-    {
-        "name": "bb_position",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Position in BB (0=lower, 0.5=middle, 1=upper)"
-    },
-    {
-        "name": "rsi_change",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "RSI change from previous day"
-    },
-    {
-        "name": "day_of_week",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Day of week (0=Monday, 4=Friday)"
-    },
-    {
-        "name": "week_of_month",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Week number within month (1-5)"
-    },
-    {
-        "name": "month",
-        "type": "INTEGER",
-        "mode": "NULLABLE",
-        "description": "Month (1-12)"
-    },
-    {
-        "name": "is_month_end",
-        "type": "BOOLEAN",
-        "mode": "NULLABLE",
-        "description": "Is last trading day of month"
-    },
-    {
-        "name": "return_vs_kospi",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Return difference vs KOSPI (%)"
-    },
-    {
-        "name": "price_range",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Daily price range (high-low)/close"
-    },
-    {
-        "name": "upper_shadow",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Upper shadow ratio (upper wick)"
-    },
-    {
-        "name": "lower_shadow",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Lower shadow ratio (lower wick)"
-    },
-    {
-        "name": "body_ratio",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Candle body ratio |open-close|/close"
-    },
-    {
-        "name": "volume_ratio",
-        "type": "FLOAT",
-        "mode": "NULLABLE",
-        "description": "Volume / 20-day average"
+        "description": "Volume / 20-day average (same as vol_norm)"
     },
     {
         "name": "foreign_participation",

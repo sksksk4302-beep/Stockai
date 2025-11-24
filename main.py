@@ -33,130 +33,78 @@ def get_kospi_top50(date: datetime = None) -> pd.DataFrame:
 # ----------------------------------------
 # 2. 개별 종목 한 달치 데이터 수집
 # ----------------------------------------
+from feature_engineering import process_features
+
 def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFrame:
     """
-    특정 티커에 대해 다음 데이터를 수집:
-      - OHLCV (시가, 고가, 저가, 종가, 거래량)
-      - 투자자별 순매수 (개인, 외국인, 기관 세부)
-      - 공매도 데이터
-      - 펀더멘털 지표 (PER, PBR, EPS, BPS, 시가총액)
-      - KOSPI 지수
-      - 기술적 지표 (MA, RSI, MACD, Bollinger Bands, ATR 등)
+    특정 티커에 대해:
+      - OHLCV (Open, High, Low, Close, Volume)
+      - 투자자별 매매동향
+      - 공매도/대차잔고
+      - 펀더멘털 지표
+      - **ML 피처 엔지니어링 적용**
+    를 모두 합쳐서 DataFrame으로 반환
     """
-    import ta
-    
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
 
-    # 1. OHLCV 데이터
-    try:
-        ohlcv = stock.get_market_ohlcv_by_date(start_str, end_str, ticker)
-        ohlcv = ohlcv[["시가", "고가", "저가", "종가", "거래량"]].copy()
-        ohlcv.columns = ["open", "high", "low", "close", "volume"]
-        
-        # 전일비 및 등락률 계산
-        ohlcv["change"] = ohlcv["close"].diff()
-        ohlcv["fluctuation_rate"] = (ohlcv["change"] / ohlcv["close"].shift(1) * 100).round(2)
-        ohlcv["return_1d"] = ohlcv["fluctuation_rate"]  # 동일
-        
-        # 거래대금 계산 (종가 * 거래량)
-        ohlcv["trading_value"] = ohlcv["close"] * ohlcv["volume"]
-        
-    except Exception as e:
-        print(f"  └ Error fetching OHLCV for {ticker}: {e}")
-        return pd.DataFrame()
-
-    # 2. 투자자별 매매동향 (세부 분류)
-    # pykrx 컬럼: 개인, 외국인, 기관합계, 금융투자, 보험, 투신, 사모, 은행, 기타금융, 연기금, 기타법인
-    inv_mapping = {
-        "개인": "individual_net",
-        "외국인": "foreign_net",
-        "기관합계": "institution_net",
-        "연기금": "pension_net",
-        "보험": "insurance_net",
-        "투신": "trust_net",
-        "기타금융": "etc_finance_net",
-        "은행": "bank_net",
-        "기타법인": "etc_corp_net"
-    }
+    # ----- 2-1. 가격/거래량 (OHLCV) -----
+    # 시가, 고가, 저가, 종가, 거래량 모두 가져옴
+    price = stock.get_market_ohlcv_by_date(start_str, end_str, ticker)
     
-    try:
-        inv = stock.get_market_trading_value_by_date(start_str, end_str, ticker)
-        
-        for kr_col, en_col in inv_mapping.items():
-            if kr_col in inv.columns:
-                ohlcv[en_col] = inv[kr_col]
-            else:
-                ohlcv[en_col] = pd.NA
-                
-    except Exception as e:
-        print(f"  └ Warning: Could not fetch investor trading for {ticker}: {e}")
-        for en_col in inv_mapping.values():
-            ohlcv[en_col] = pd.NA
+    # 컬럼 영문 변환
+    price = price[["시가", "고가", "저가", "종가", "거래량"]].copy()
+    price.columns = ["open", "high", "low", "close", "volume"]
+    
+    # 전일비 계산 (기존 로직 유지)
+    price["close_diff"] = price["close"].diff()
+    price["volume_diff"] = price["volume"].diff()
 
-    # 3. 공매도 데이터
-    try:
-        short = stock.get_shorting_balance_by_date(start_str, end_str, ticker)
-        ohlcv["short_volume"] = short["공매도잔고"] if "공매도잔고" in short.columns else pd.NA
-        ohlcv["short_value"] = short["공매도금액"] if "공매도금액" in short.columns else pd.NA
-        ohlcv["short_ratio"] = short["비중"] if "비중" in short.columns else pd.NA
-        
-        # 대차잔고 (주식 대여)
-        # Note: 실제로는 별도 API 필요, 일단 공매도 데이터로 대체
-        ohlcv["loan_balance"] = ohlcv["short_volume"]
-        ohlcv["loan_balance_change"] = ohlcv["loan_balance"].diff()
-        ohlcv["loan_balance_value"] = ohlcv["short_value"]
-        
-    except Exception as e:
-        print(f"  └ Warning: Could not fetch short selling data for {ticker}: {e}")
-        ohlcv["short_volume"] = pd.NA
-        ohlcv["short_value"] = pd.NA
-        ohlcv["short_ratio"] = pd.NA
-        ohlcv["loan_balance"] = pd.NA
-        ohlcv["loan_balance_change"] = pd.NA
-        ohlcv["loan_balance_value"] = pd.NA
+    # ----- 2-2. 투자자별 매매동향 (순매수 거래대금 기준) -----
+    inv = stock.get_market_trading_value_by_date(start_str, end_str, ticker)
 
-    # 4. 펀더멘털 & 시가총액
-    try:
-        fund = stock.get_market_fundamental_by_date(start_str, end_str, ticker)
-        ohlcv["per"] = fund["PER"] if "PER" in fund.columns else pd.NA
-        ohlcv["eps"] = fund["EPS"] if "EPS" in fund.columns else pd.NA
-        ohlcv["pbr"] = fund["PBR"] if "PBR" in fund.columns else pd.NA
-        ohlcv["bps"] = fund["BPS"] if "BPS" in fund.columns else pd.NA
-        
-        # 시가총액 = 종가 * 상장주식수 (상장주식수는 별도 조회 필요)
-        try:
-            cap = stock.get_market_cap_by_date(start_str, end_str, ticker)
-            ohlcv["market_cap"] = cap["시가총액"] if "시가총액" in cap.columns else pd.NA
-            ohlcv["shares_outstanding"] = cap["상장주식수"] if "상장주식수" in cap.columns else pd.NA
-        except:
-            ohlcv["market_cap"] = pd.NA
-            ohlcv["shares_outstanding"] = pd.NA
-            
-    except Exception as e:
-        print(f"  └ Warning: Could not fetch fundamental data for {ticker}: {e}")
-        ohlcv["per"] = pd.NA
-        ohlcv["eps"] = pd.NA
-        ohlcv["pbr"] = pd.NA
-        ohlcv["bps"] = pd.NA
-        ohlcv["market_cap"] = pd.NA
-        ohlcv["shares_outstanding"] = pd.NA
+    # 방어적으로 컬럼 체크
+    cols = inv.columns
+    col_individual = "개인"
+    col_foreign = "외국인" if "외국인" in cols else "외국인합계"
+    col_institution = "기관합계" if "기관합계" in cols else "기관"
 
-    # 5. KOSPI 지수 데이터
+    inv = inv[[col_individual, col_foreign, col_institution]].copy()
+    
+    # 1만 단위로 나누고 올림 처리
+    inv = inv / 10000
+    inv = np.ceil(inv)
+
+    inv.columns = ["individual_net_buy", "foreign_net_buy", "institution_net_buy"]
+
+    # ----- 2-3. 공매도 잔고 (대차잔고 유사) -----
     try:
-        kospi = stock.get_index_ohlcv_by_date(start_str, end_str, "1001")  # KOSPI 코드
-        ohlcv["kospi_open"] = kospi["시가"]
-        ohlcv["kospi_high"] = kospi["고가"]
-        ohlcv["kospi_low"] = kospi["저가"]
-        ohlcv["kospi_close"] = kospi["종가"]
-        ohlcv["kospi_volume"] = kospi["거래량"]
+        short_bal = stock.get_shorting_balance_by_date(start_str, end_str, ticker)
+        short_bal = short_bal[["공매도잔고"]].copy()
+        short_bal.columns = ["short_balance"]
+        short_bal["short_balance_diff"] = short_bal["short_balance"].diff()
+    except Exception:
+        short_bal = pd.DataFrame(index=price.index)
+        short_bal["short_balance"] = pd.NA
+        short_bal["short_balance_diff"] = pd.NA
+
+    # ----- 2-4. 펀더멘털 지표 -----
+    try:
+        fundamental = stock.get_market_fundamental_by_date(start_str, end_str, ticker)
+        fundamental = fundamental[["BPS", "PER", "PBR", "EPS"]].copy()
+        fundamental.columns = ["bps", "per", "pbr", "eps"]
+        fundamental["estimated_eps"] = pd.NA
     except Exception as e:
-        print(f"  └ Warning: Could not fetch KOSPI index: {e}")
-        ohlcv["kospi_open"] = pd.NA
-        ohlcv["kospi_high"] = pd.NA
-        ohlcv["kospi_low"] = pd.NA
-        ohlcv["kospi_close"] = pd.NA
-        ohlcv["kospi_volume"] = pd.NA
+        print(f"Warning: Could not fetch fundamental data for {ticker}: {e}")
+        fundamental = pd.DataFrame(index=price.index)
+        for col in ["bps", "per", "pbr", "eps", "estimated_eps"]:
+            fundamental[col] = pd.NA
+
+    # ----- 2-5. 데이터 병합 -----
+    df = price.join(inv, how="left").join(short_bal, how="left").join(fundamental, how="left")
+
+    df["ticker"] = ticker
+    df["name"] = stock.get_market_ticker_name(ticker)
 
     # 6. 환율 (KRW/USD) - pykrx에 없으므로 일단 NULL
     ohlcv["krw_usd"] = pd.NA
@@ -263,6 +211,7 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     ohlcv["name"] = stock.get_market_ticker_name(ticker)
     
     # index(날짜)를 컬럼으로
+<<<<<<< HEAD
     ohlcv = ohlcv.reset_index()
     if "index" in ohlcv.columns:
         ohlcv = ohlcv.rename(columns={"index": "date"})
@@ -444,6 +393,15 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
             ohlcv[col] = pd.NA
     
     return ohlcv
+=======
+    df = df.reset_index().rename(columns={"index": "date"})
+    
+    # ----- 2-6. Feature Engineering -----
+    # 피처 계산 적용
+    df = process_features(df)
+    
+    return df
+>>>>>>> 5ba74ae (Feat: Implement ML feature engineering and update BigQuery schema)
 
 
 
