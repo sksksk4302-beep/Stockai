@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY tickers.json .
 COPY bigquery_client.py .
+COPY feature_engineering.py .
 COPY config.py .
 COPY schema/ ./schema/
 
