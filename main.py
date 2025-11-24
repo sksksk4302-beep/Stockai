@@ -282,76 +282,91 @@ def main_process(ticker="005930"):
 
 # Cloud Functions (HTTP Trigger)
 def cloud_function_entry(request):
-    bq = get_bq_client()
-    
-    # 요청 파싱
-    request_json = request.get_json(silent=True)
-    request_args = request.args
-    
-    # 특수 액션 체크 (테이블 재생성)
-    action = None
-    if request_json and 'action' in request_json:
-        action = request_json['action']
-    elif request_args and 'action' in request_args:
-        action = request_args['action']
-    
-    if action == 'recreate_table':
-        try:
-            # 기존 테이블 삭제
-            bq.client.delete_table(bq.table_id)
-            print(f"✅ 기존 테이블 삭제 완료: {bq.table_id}")
-        except Exception as e:
-            print(f"⚠️ 테이블 삭제 중 오류 (무시 가능): {e}")
+    try:
+        # Health check endpoint
+        if request.method == 'GET' and not request.args:
+            return {
+                'status': 'ok',
+                'service': 'stockaibot',
+                'message': 'Service is running. Use ?action=recreate_table or ?ticker=005930 or POST with ticker list.'
+            }
         
-        # 새 테이블 생성
-        bq.create_dataset_if_not_exists()
-        bq.create_table_if_not_exists()
+        bq = get_bq_client()
         
-        return f"✅ 테이블 재생성 완료: {bq.table_id}"
-    
-    ticker = None
-    if request_json and 'ticker' in request_json:
-        ticker = request_json['ticker']
-    elif request_args and 'ticker' in request_args:
-        ticker = request_args['ticker']
+        # 요청 파싱
+        request_json = request.get_json(silent=True)
+        request_args = request.args
         
-    # 1. 단일 티커 처리
-    if ticker:
-        return main_process(ticker)
-    
-    # 2. 전체 티커 일괄 처리 (Batch Processing)
-    else:
-        tickers = load_tickers()
-        print(f"🚀 전체 {len(tickers)}개 종목 일괄 처리를 시작합니다.")
+        # 특수 액션 체크 (테이블 재생성)
+        action = None
+        if request_json and 'action' in request_json:
+            action = request_json['action']
+        elif request_args and 'action' in request_args:
+            action = request_args['action']
         
-        all_dataframes = []
-        results = []
-        
-        for t in tickers:
-            code = t['code']
-            name = t['name']
-            
+        if action == 'recreate_table':
             try:
-                df = process_ticker_data(code, bq)
-                if df is not None:
-                    all_dataframes.append(df)
-                    results.append(f"{name}: Collected {len(df)} rows")
-                else:
-                    results.append(f"{name}: Up to date or No data")
+                # 기존 테이블 삭제
+                bq.client.delete_table(bq.table_id)
+                print(f"✅ 기존 테이블 삭제 완료: {bq.table_id}")
             except Exception as e:
-                print(f"Error processing {name}: {e}")
-                results.append(f"{name}: Error")
-        
-        # 일괄 업로드
-        if all_dataframes:
-            print(f"\n💾 총 {len(all_dataframes)}개 종목 데이터를 병합하여 BigQuery에 업로드합니다...")
-            merged_df = pd.concat(all_dataframes, ignore_index=True)
-            bq.upload_dataframe(merged_df)
-            print("✨ 전체 업로드 완료!")
-        else:
-            print("\n✨ 업로드할 데이터가 없습니다.")
+                print(f"⚠️ 테이블 삭제 중 오류 (무시 가능): {e}")
             
-        return "\n".join(results)
+            # 새 테이블 생성
+            bq.create_dataset_if_not_exists()
+            bq.create_table_if_not_exists()
+            
+            return f"✅ 테이블 재생성 완료: {bq.table_id}"
+        
+        ticker = None
+        if request_json and 'ticker' in request_json:
+            ticker = request_json['ticker']
+        elif request_args and 'ticker' in request_args:
+            ticker = request_args['ticker']
+            
+        # 1. 단일 티커 처리
+        if ticker:
+            return main_process(ticker)
+        
+        # 2. 전체 티커 일괄 처리 (Batch Processing)
+        else:
+            tickers = load_tickers()
+            print(f"🚀 전체 {len(tickers)}개 종목 일괄 처리를 시작합니다.")
+            
+            all_dataframes = []
+            results = []
+            
+            for t in tickers:
+                code = t['code']
+                name = t['name']
+                
+                try:
+                    df = process_ticker_data(code, bq)
+                    if df is not None:
+                        all_dataframes.append(df)
+                        results.append(f"{name}: Collected {len(df)} rows")
+                    else:
+                        results.append(f"{name}: Up to date or No data")
+                except Exception as e:
+                    print(f"Error processing {name}: {e}")
+                    results.append(f"{name}: Error")
+            
+            # 일괄 업로드
+            if all_dataframes:
+                print(f"\n💾 총 {len(all_dataframes)}개 종목 데이터를 병합하여 BigQuery에 업로드합니다...")
+                merged_df = pd.concat(all_dataframes, ignore_index=True)
+                bq.upload_dataframe(merged_df)
+                print("✨ 전체 업로드 완료!")
+            else:
+                print("\n✨ 업로드할 데이터가 없습니다.")
+                
+            return "\n".join(results)
+    
+    except Exception as e:
+        import traceback
+        error_msg = f"Error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return {'error': str(e), 'traceback': traceback.format_exc()}, 500
 
 if __name__ == "__main__":
     # 로컬 테스트
