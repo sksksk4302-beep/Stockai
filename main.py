@@ -283,12 +283,12 @@ def main_process(ticker="005930"):
 # Cloud Functions (HTTP Trigger)
 def cloud_function_entry(request):
     try:
-        # Health check endpoint
-        if request.method == 'GET' and not request.args:
+        # Health check endpoint - only for specific health check requests
+        if request.path == '/health' or (request.args and request.args.get('health') == 'check'):
             return {
                 'status': 'ok',
                 'service': 'stockaibot',
-                'message': 'Service is running. Use ?action=recreate_table or ?ticker=005930 or POST with ticker list.'
+                'message': 'Service is running. Call without params to process all tickers, or use ?ticker=005930 for specific ticker.'
             }
         
         bq = get_bq_client()
