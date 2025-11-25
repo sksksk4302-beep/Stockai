@@ -238,8 +238,8 @@ def process_ticker_data(ticker, bq):
         start = datetime.combine(last_date, datetime.min.time()) + timedelta(days=1)
         print(f"  └ 🔄 기존 데이터 발견 (Last: {last_date}). {start.date()} 부터 수집.")
     else:
-        start = today - timedelta(days=90)
-        print(f"  └ 🆕 신규 데이터. 최근 90일 수집.")
+        start = today - timedelta(days=365)
+        print(f"  └ 🆕 신규 데이터. 최근 1년 수집.")
 
     # 미래 날짜인 경우
     if start.date() > today.date():
