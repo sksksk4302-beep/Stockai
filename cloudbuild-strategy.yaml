@@ -30,3 +30,6 @@ steps:
 
 images:
   - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
