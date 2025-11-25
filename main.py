@@ -106,7 +106,16 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
     df["ticker"] = ticker
     df["name"] = stock.get_market_ticker_name(ticker)
 
-    df = df.reset_index().rename(columns={"index": "date"})
+    # Reset index and ensure 'date' column exists
+    df = df.reset_index()
+    # The index from pykrx is the date, rename it to 'date'
+    if 'index' in df.columns:
+        df = df.rename(columns={"index": "date"})
+    elif '날짜' in df.columns:
+        df = df.rename(columns={"날짜": "date"})
+    elif df.columns[0] not in ['date', 'ticker', 'name']:
+        # First column is likely the date
+        df = df.rename(columns={df.columns[0]: "date"})
     
     # ----- 2-6. Feature Engineering -----
     # 피처 계산 적용
