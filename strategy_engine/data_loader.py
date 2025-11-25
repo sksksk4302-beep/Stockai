@@ -4,7 +4,7 @@ from google.cloud import bigquery
 from datetime import datetime, timedelta
 
 class DataLoader:
-    def __init__(self, project_id=None, dataset_id="stock_data", table_id="stock_daily"):
+    def __init__(self, project_id=None, dataset_id="stock_data", table_id="daily_metrics"):
         # Use env var if project_id not provided
         if not project_id:
             project_id = os.getenv('PROJECT_ID', 'tonal-land-477206-h3')

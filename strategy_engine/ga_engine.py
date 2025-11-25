@@ -13,18 +13,38 @@ class GAEngine:
     def __init__(self, df):
         self.df = df
         self.features = [col for col in df.columns if col not in ['date', 'ticker', 'name', 'target_return_1d']]
+        
+        # Calculate min/max for each feature to set appropriate threshold ranges
+        self.feat_ranges = {}
+        for feat in self.features:
+            self.feat_ranges[feat] = (df[feat].min(), df[feat].max())
+            
         self.toolbox = base.Toolbox()
         self._setup_toolbox()
+
+    def _get_random_threshold(self, feat_idx):
+        """Generate a random threshold within the range of the selected feature"""
+        feat_name = self.features[feat_idx]
+        min_val, max_val = self.feat_ranges[feat_name]
+        # Avoid exact min/max to prevent always-true/false rules
+        return random.uniform(min_val, max_val)
 
     def _setup_toolbox(self):
         # Gene: [Feature_Index, Operator(0: <, 1: >), Threshold]
         self.toolbox.register("attr_feat", random.randint, 0, len(self.features)-1)
         self.toolbox.register("attr_op", random.randint, 0, 1)
-        self.toolbox.register("attr_thres", random.uniform, -2.0, 2.0) # Normalized threshold
+        # Threshold is now generated dynamically based on the feature
+        # We'll use a placeholder here and fix it in the individual creator or mutation
+        self.toolbox.register("attr_thres", random.uniform, 0, 1) 
         
-        # Condition: A single rule part
-        self.toolbox.register("condition", tools.initCycle, list,
-                             (self.toolbox.attr_feat, self.toolbox.attr_op, self.toolbox.attr_thres), n=1)
+        # Condition creator wrapper to handle dynamic threshold
+        def create_condition():
+            feat_idx = random.randint(0, len(self.features)-1)
+            op = random.randint(0, 1)
+            thres = self._get_random_threshold(feat_idx)
+            return [feat_idx, op, thres]
+
+        self.toolbox.register("condition", create_condition)
         
         # Individual: Variable length list of conditions (1 to 3 conditions)
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.condition, n=random.randint(1, 3))
@@ -61,11 +81,23 @@ class GAEngine:
             gene_idx = random.randint(0, 2)
             
             if gene_idx == 0: # Feature
-                individual[cond_idx][0] = random.randint(0, len(self.features)-1)
+                # When changing feature, we must also reset threshold to match new feature's range
+                new_feat_idx = random.randint(0, len(self.features)-1)
+                individual[cond_idx][0] = new_feat_idx
+                individual[cond_idx][2] = self._get_random_threshold(new_feat_idx)
             elif gene_idx == 1: # Operator
                 individual[cond_idx][1] = 1 - individual[cond_idx][1]
             else: # Threshold
-                individual[cond_idx][2] += random.gauss(0, 0.5)
+                # Add noise but keep within range
+                feat_idx = individual[cond_idx][0]
+                feat_name = self.features[feat_idx]
+                min_val, max_val = self.feat_ranges[feat_name]
+                std_dev = (max_val - min_val) * 0.1 # 10% of range as std dev
+                
+                new_thres = individual[cond_idx][2] + random.gauss(0, std_dev)
+                # Clip to range
+                new_thres = max(min_val, min(max_val, new_thres))
+                individual[cond_idx][2] = new_thres
                 
         return individual,
 
