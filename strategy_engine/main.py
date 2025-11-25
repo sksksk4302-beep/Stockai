@@ -41,15 +41,65 @@ def main():
     # 4. Report Results
     print("\n🏆 Top Discovered Rules:")
     print("-" * 50)
+    
+    discovered_rules = []
+    today = pd.Timestamp.now().strftime("%Y-%m-%d")
+    
     for i, rule in enumerate(best_rules, 1):
         rule_str = engine.decode_rule(rule)
         fitness = rule.fitness.values[0]
         print(f"{i}. {rule_str} \t(Total Return: {fitness:.2f}%)")
+        
+        discovered_rules.append({
+            'date': today,
+            'rank': i,
+            'rule_expression': rule_str,
+            'expected_return': float(fitness),
+            'num_conditions': len(rule)
+        })
     print("-" * 50)
     
-    print("\n💡 Interpretation:")
-    print("These rules represent conditions that historically led to positive returns.")
-    print("Example: 'rsi < 30.0' means buying when RSI is below 30 yielded profit.")
+    # 5. Save to BigQuery
+    save_to_bq(discovered_rules)
+
+def save_to_bq(rules):
+    """Saves discovered rules to BigQuery"""
+    if not rules:
+        return
+
+    print("\n💾 Saving rules to BigQuery (strategy_rules table)...")
+    try:
+        from google.cloud import bigquery
+        client = bigquery.Client()
+        table_id = "tonal-land-477206-h3.stock_data.strategy_rules"
+        
+        # Define schema
+        schema = [
+            bigquery.SchemaField("date", "DATE"),
+            bigquery.SchemaField("rank", "INTEGER"),
+            bigquery.SchemaField("rule_expression", "STRING"),
+            bigquery.SchemaField("expected_return", "FLOAT"),
+            bigquery.SchemaField("num_conditions", "INTEGER"),
+        ]
+        
+        # Create table if not exists
+        try:
+            client.get_table(table_id)
+        except:
+            print(f"Creating new table: {table_id}")
+            table = bigquery.Table(table_id, schema=schema)
+            client.create_table(table)
+            
+        # Insert rows
+        errors = client.insert_rows_json(table_id, rules)
+        if errors:
+            print(f"⚠️ Errors inserting rows: {errors}")
+        else:
+            print("✅ Rules saved successfully!")
+            
+    except Exception as e:
+        print(f"⚠️ Failed to save to BigQuery: {e}")
+
 
 if __name__ == "__main__":
     main()
