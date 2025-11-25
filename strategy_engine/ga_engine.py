@@ -5,7 +5,8 @@ from deap import base, creator, tools, algorithms
 
 # 1. Setup GA Environment
 # We want to maximize return (FitnessMax)
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+# Weights: (Return, -Number_of_Conditions) -> Prefer higher return, simpler rules
+creator.create("FitnessMax", base.Fitness, weights=(1.0, -0.1))
 creator.create("Individual", list, fitness=creator.FitnessMax)
 
 class GAEngine:
@@ -21,78 +22,107 @@ class GAEngine:
         self.toolbox.register("attr_op", random.randint, 0, 1)
         self.toolbox.register("attr_thres", random.uniform, -2.0, 2.0) # Normalized threshold
         
-        # Individual: A list of 3 genes (Simple rule: Feature OP Threshold)
-        self.toolbox.register("individual", tools.initCycle, creator.Individual,
+        # Condition: A single rule part
+        self.toolbox.register("condition", tools.initCycle, list,
                              (self.toolbox.attr_feat, self.toolbox.attr_op, self.toolbox.attr_thres), n=1)
+        
+        # Individual: Variable length list of conditions (1 to 3 conditions)
+        self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.condition, n=random.randint(1, 3))
         
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         
         self.toolbox.register("evaluate", self.evaluate)
         self.toolbox.register("mate", tools.cxTwoPoint)
-        self.toolbox.register("mutate", tools.mutUniformInt, low=[0,0,-2], up=[len(self.features)-1, 1, 2], indpb=0.2)
+        self.toolbox.register("mutate", self.mutate_individual)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
+
+    def mutate_individual(self, individual):
+        """Custom mutation: Modify condition, Add condition, or Remove condition"""
+        prob = random.random()
+        
+        if prob < 0.33 and len(individual) > 1: # Remove condition
+            del individual[random.randint(0, len(individual)-1)]
+        elif prob < 0.66 and len(individual) < 5: # Add condition
+            individual.append(self.toolbox.condition())
+        else: # Modify existing condition
+            # Mutate one gene in one condition
+            cond_idx = random.randint(0, len(individual)-1)
+            gene_idx = random.randint(0, 2)
+            
+            if gene_idx == 0: # Feature
+                individual[cond_idx][0] = random.randint(0, len(self.features)-1)
+            elif gene_idx == 1: # Operator
+                individual[cond_idx][1] = 1 - individual[cond_idx][1]
+            else: # Threshold
+                individual[cond_idx][2] += random.gauss(0, 0.5)
+                
+        return individual,
 
     def evaluate(self, individual):
         """
-        Evaluate the profitability of a rule.
-        Rule: If Feature X (</>) Threshold, then BUY.
+        Evaluate the profitability of a composite rule (AND logic).
         """
-        feat_idx, op, thres = individual
-        feature_name = self.features[feat_idx]
+        if not individual:
+            return (-999, 0)
+
+        # Start with all True
+        combined_signals = pd.Series(True, index=self.df.index)
         
-        # Simple Backtest
-        # We assume we buy if condition is met, and hold for 1 day
-        # Target: target_return_1d (Next day return)
+        for cond in individual:
+            feat_idx, op, thres = cond
+            feature_name = self.features[feat_idx]
+            
+            try:
+                series = self.df[feature_name]
+                if op == 0: # <
+                    signals = series < thres
+                else: # >
+                    signals = series > thres
+                
+                combined_signals = combined_signals & signals
+            except:
+                return (-999, 0)
         
+        # Calculate returns
         try:
-            # Get feature data
-            series = self.df[feature_name]
+            returns = self.df.loc[combined_signals, 'target_return_1d']
             
-            # Apply condition
-            if op == 0: # <
-                signals = series < thres
-            else: # >
-                signals = series > thres
+            if len(returns) < 20: # Minimum trades required
+                return (-999, len(individual))
                 
-            # Calculate returns
-            # If signal is True, we get target_return_1d
-            returns = self.df.loc[signals, 'target_return_1d']
-            
-            if len(returns) < 10: # Too few trades
-                return (-999,)
-                
-            # Metric: Average Daily Return * sqrt(252) (Annualized Return approximation)
-            # Or simply Sum of returns
             total_return = returns.sum()
+            return (total_return, len(individual))
             
-            return (total_return,)
-            
-        except Exception as e:
-            return (-999,)
+        except Exception:
+            return (-999, len(individual))
 
     def run(self, generations=10, population_size=50):
         pop = self.toolbox.population(n=population_size)
-        hof = tools.HallOfFame(5) # Top 5 rules
+        hof = tools.HallOfFame(5)
         
-        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats = tools.Statistics(lambda ind: ind.fitness.values[0]) # Track return only
         stats.register("avg", np.mean)
         stats.register("max", np.max)
         
-        pop, log = algorithms.eaSimple(pop, self.toolbox, cxpb=0.5, mutpb=0.2, ngen=generations, 
+        pop, log = algorithms.eaSimple(pop, self.toolbox, cxpb=0.5, mutpb=0.3, ngen=generations, 
                                        stats=stats, halloffame=hof, verbose=True)
         
         return hof, log
 
     def decode_rule(self, individual):
-        feat_idx, op, thres = individual
-        feature_name = self.features[feat_idx]
-        op_str = "<" if op == 0 else ">"
-        return f"{feature_name} {op_str} {thres:.4f}"
+        parts = []
+        for cond in individual:
+            feat_idx, op, thres = cond
+            feature_name = self.features[feat_idx]
+            op_str = "<" if op == 0 else ">"
+            parts.append(f"({feature_name} {op_str} {thres:.4f})")
+        return " AND ".join(parts)
 
 if __name__ == "__main__":
     # Mock data for testing
     data = {
         'rsi': np.random.uniform(0, 100, 100),
+        'ma5': np.random.uniform(100, 200, 100),
         'target_return_1d': np.random.normal(0, 1, 100)
     }
     df = pd.DataFrame(data)
