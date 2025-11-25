@@ -1,11 +1,11 @@
 steps:
   # 1. Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA', '-f', 'Dockerfile.strategy', '.']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/stockaibot/strategy-engine:$COMMIT_SHA', '-f', 'Dockerfile.strategy', '.']
 
   # 2. Push the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/stockaibot/strategy-engine:$COMMIT_SHA']
 
   # 3. Deploy to Cloud Run Jobs
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -16,7 +16,7 @@ steps:
       - 'deploy'
       - 'strategy-engine-job'
       - '--image'
-      - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/stockaibot/strategy-engine:$COMMIT_SHA'
       - '--region'
       - 'us-central1'
       - '--tasks'
@@ -29,7 +29,7 @@ steps:
       - 'PROJECT_ID=$PROJECT_ID'
 
 images:
-  - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/stockaibot/strategy-engine:$COMMIT_SHA'
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
