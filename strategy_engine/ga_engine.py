@@ -12,7 +12,13 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 class GAEngine:
     def __init__(self, df):
         self.df = df
-        self.features = [col for col in df.columns if col not in ['date', 'ticker', 'name', 'target_return_1d']]
+        # Exclude metadata and ANY target variables (data leakage prevention)
+        self.features = [col for col in df.columns 
+                        if col not in ['date', 'ticker', 'name'] 
+                        and not col.startswith('target_')]
+        
+        print(f"📊 Features available: {len(self.features)}")
+        # print(f"Feature list: {self.features}")
         
         # Calculate min/max for each feature to set appropriate threshold ranges
         self.feat_ranges = {}
