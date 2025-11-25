@@ -1,0 +1,22 @@
+# Use Python 3.10 slim image
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements files
+COPY requirements.txt .
+COPY strategy_engine/requirements.txt strategy_requirements.txt
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r strategy_requirements.txt
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+
+# Run the strategy engine
+CMD ["python", "strategy_engine/main.py"]

@@ -1,0 +1,32 @@
+steps:
+  # 1. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA', '-f', 'Dockerfile.strategy', '.']
+
+  # 2. Push the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA']
+
+  # 3. Deploy to Cloud Run Jobs
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'jobs'
+      - 'deploy'
+      - 'strategy-engine-job'
+      - '--image'
+      - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--tasks'
+      - '1'
+      - '--max-retries'
+      - '0'
+      - '--task-timeout'
+      - '60m'
+      - '--set-env-vars'
+      - 'PROJECT_ID=$PROJECT_ID'
+
+images:
+  - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/stock-repo/strategy-engine:$COMMIT_SHA'
