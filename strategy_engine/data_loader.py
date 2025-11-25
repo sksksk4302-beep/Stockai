@@ -4,9 +4,15 @@ from google.cloud import bigquery
 from datetime import datetime, timedelta
 
 class DataLoader:
-    def __init__(self, project_id="tonal-land-477206-h3", dataset_id="stock_data", table_id="stock_daily"):
+    def __init__(self, project_id=None, dataset_id="stock_data", table_id="stock_daily"):
+        # Use env var if project_id not provided
+        if not project_id:
+            project_id = os.getenv('PROJECT_ID', 'tonal-land-477206-h3')
+            
         self.client = bigquery.Client(project=project_id)
         self.table_ref = f"{project_id}.{dataset_id}.{table_id}"
+        print(f"🔌 Connecting to BigQuery table: {self.table_ref}")
+        
         self.cache_dir = "data_cache"
         os.makedirs(self.cache_dir, exist_ok=True)
 

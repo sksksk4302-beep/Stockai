@@ -32,9 +32,20 @@ class GAEngine:
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         
         self.toolbox.register("evaluate", self.evaluate)
-        self.toolbox.register("mate", tools.cxTwoPoint)
+        self.toolbox.register("mate", self.safe_mate)
         self.toolbox.register("mutate", self.mutate_individual)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
+
+    def safe_mate(self, ind1, ind2):
+        """Safely mate two individuals, handling variable lengths"""
+        if len(ind1) < 2 or len(ind2) < 2:
+            # If either is too short for 2-point crossover, swap the whole individuals with probability
+            if random.random() < 0.5:
+                ind1[:], ind2[:] = ind2[:], ind1[:]
+            return ind1, ind2
+        
+        # Use standard 2-point crossover for longer individuals
+        return tools.cxTwoPoint(ind1, ind2)
 
     def mutate_individual(self, individual):
         """Custom mutation: Modify condition, Add condition, or Remove condition"""
