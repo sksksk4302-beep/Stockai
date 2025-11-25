@@ -13,6 +13,21 @@ class DataLoader:
         self.table_ref = f"{project_id}.{dataset_id}.{table_id}"
         print(f"🔌 Connecting to BigQuery table: {self.table_ref}")
         
+        # Debug: List datasets and tables to verify existence
+        try:
+            print(f"🔍 Checking datasets in project {project_id}...")
+            datasets = list(self.client.list_datasets())
+            if datasets:
+                print(f"  Found {len(datasets)} datasets: {[d.dataset_id for d in datasets]}")
+                for ds in datasets:
+                    if ds.dataset_id == dataset_id:
+                        tables = list(self.client.list_tables(ds.dataset_id))
+                        print(f"  Tables in {dataset_id}: {[t.table_id for t in tables]}")
+            else:
+                print("  ⚠️ No datasets found!")
+        except Exception as e:
+            print(f"  ⚠️ Error listing datasets: {e}")
+        
         self.cache_dir = "data_cache"
         os.makedirs(self.cache_dir, exist_ok=True)
 
