@@ -28,6 +28,19 @@ steps:
       - '--set-env-vars'
       - 'PROJECT_ID=$PROJECT_ID'
 
+  # 4. Execute the Cloud Run Job
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'jobs'
+      - 'execute'
+      - 'strategy-engine-job'
+      - '--region'
+      - 'us-central1'
+      - '--wait'  # Wait for completion (optional, but good for build logs)
+
+
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/stockaibot/strategy-engine:$COMMIT_SHA'
 
