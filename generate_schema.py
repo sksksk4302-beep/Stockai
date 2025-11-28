@@ -36,6 +36,7 @@ schema = [
     {"name": "ma5", "type": "FLOAT", "mode": "NULLABLE", "description": "5-day moving average"},
     {"name": "ma20", "type": "FLOAT", "mode": "NULLABLE", "description": "20-day moving average"},
     {"name": "ma60", "type": "FLOAT", "mode": "NULLABLE", "description": "60-day moving average"},
+    {"name": "ma120", "type": "FLOAT", "mode": "NULLABLE", "description": "120-day moving average"},
     
     # RSI
     {"name": "rsi", "type": "FLOAT", "mode": "NULLABLE", "description": "14-day RSI"},
@@ -113,6 +114,7 @@ schema = [
     {"name": "price_vs_ma5", "type": "FLOAT", "mode": "NULLABLE", "description": "(close - ma5) / ma5 * 100"},
     {"name": "price_vs_ma20", "type": "FLOAT", "mode": "NULLABLE", "description": "(close - ma20) / ma20 * 100"},
     {"name": "price_vs_ma60", "type": "FLOAT", "mode": "NULLABLE", "description": "(close - ma60) / ma60 * 100"},
+    {"name": "price_vs_ma120", "type": "FLOAT", "mode": "NULLABLE", "description": "(close - ma120) / ma120 * 100"},
     
     # Target variables
     {"name": "target_return_1d", "type": "FLOAT", "mode": "NULLABLE", "description": "Next 1-day return (%)"},

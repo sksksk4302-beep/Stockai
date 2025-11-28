@@ -234,28 +234,47 @@ def process_ticker_data(ticker, bq):
     # BigQuery에서 마지막 적재일 확인
     last_date = bq.get_latest_date(ticker)
     
+    # 룩백 기간 (Rolling Feature 계산용) - 6개월(120일) MA 고려하여 넉넉히 200일
+    lookback_days = 200
+    
     if last_date:
-        start = datetime.combine(last_date, datetime.min.time()) + timedelta(days=1)
-        print(f"  └ 🔄 기존 데이터 발견 (Last: {last_date}). {start.date()} 부터 수집.")
+        # 실제 적재해야 할 시작일
+        target_start = datetime.combine(last_date, datetime.min.time()) + timedelta(days=1)
+        
+        # 피처 계산을 위해 과거 데이터도 함께 조회
+        fetch_start = target_start - timedelta(days=lookback_days)
+        
+        print(f"  └ 🔄 기존 데이터 발견 (Last: {last_date}).")
+        print(f"     - 수집 구간: {fetch_start.date()} ~ {today.date()} (Lookback 포함)")
+        print(f"     - 적재 구간: {target_start.date()} ~ {today.date()}")
     else:
-        start = today - timedelta(days=365)
+        # 신규 데이터는 1년치 수집
+        target_start = today - timedelta(days=365)
+        fetch_start = target_start
         print(f"  └ 🆕 신규 데이터. 최근 1년 수집.")
 
-    # 미래 날짜인 경우
-    if start.date() > today.date():
+    # 미래 날짜인 경우 (이미 최신)
+    if target_start.date() > today.date():
         print("  └ ✅ 이미 최신입니다.")
         return None
 
     # 2. 상세 데이터 수집
     try:
-        df_detail = fetch_one_ticker(ticker, start, today)
+        # 룩백 포함하여 수집
+        df_detail = fetch_one_ticker(ticker, fetch_start, today)
         
         # 휴장일(거래량 0) 및 데이터 없는 날 제거
         if not df_detail.empty:
             df_detail = df_detail[df_detail['volume'] > 0]
+            
+        # 실제 적재할 기간만 필터링
+        if not df_detail.empty and last_date:
+             # date 컬럼이 datetime 타입인지 확인 필요 (fetch_one_ticker에서 처리됨)
+             # target_start는 datetime 객체
+             df_detail = df_detail[df_detail['date'] >= target_start]
         
         if df_detail.empty:
-            print("  └ ⚠️ 수집된 데이터가 없습니다 (휴장일 등).")
+            print("  └ ⚠️ 수집된 데이터가 없습니다 (휴장일 또는 이미 최신).")
             return None
             
         return df_detail

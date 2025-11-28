@@ -9,7 +9,7 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values("date")  # 날짜 오름차순 정렬
 
     # 이동평균 (MA)
-    for window in [5, 20, 60]:
+    for window in [5, 20, 60, 120]:
         df[f'ma{window}'] = df['close'].rolling(window=window).mean()
 
     # RSI (14일)
@@ -163,7 +163,7 @@ def add_rolling_features(df: pd.DataFrame) -> pd.DataFrame:
     df['return_20d_sharpe'] = mean_return / std_return
     
     # Price Position vs MA
-    for window in [5, 20, 60]:
+    for window in [5, 20, 60, 120]:
         col = f'ma{window}'
         if col in df.columns:
             df[f'price_vs_{col}'] = (df['close'] - df[col]) / df[col]

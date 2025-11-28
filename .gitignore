@@ -6,3 +6,8 @@ verify_stock.py
 research_pykrx.py
 .DS_Store
 .vscode/
+
+# Secrets & Keys
+keys/
+*.key
+.env

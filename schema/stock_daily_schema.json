@@ -138,6 +138,12 @@
         "description": "60-day moving average"
     },
     {
+        "name": "ma120",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "120-day moving average"
+    },
+    {
         "name": "rsi",
         "type": "FLOAT",
         "mode": "NULLABLE",
@@ -418,6 +424,12 @@
         "type": "FLOAT",
         "mode": "NULLABLE",
         "description": "(close - ma60) / ma60 * 100"
+    },
+    {
+        "name": "price_vs_ma120",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "(close - ma120) / ma120 * 100"
     },
     {
         "name": "target_return_1d",
