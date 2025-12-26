@@ -12,7 +12,7 @@
 -- 모든 필드가 한글로 표시됩니다!
 -- ============================================
 
-CREATE OR REPLACE VIEW `프로젝트ID.데이터셋ID.stock_daily_kr` AS
+CREATE OR REPLACE VIEW `tonal-land-477206-h3.stock_data.stock_daily_kr` AS
 SELECT 
   -- 기본 정보
   date AS 날짜,
@@ -129,7 +129,7 @@ SELECT
   target_direction AS 상승하락,
   target_high_low_range AS 다음날변동폭
 
-FROM `프로젝트ID.데이터셋ID.stock_daily`;
+FROM `tonal-land-477206-h3.stock_data.stock_daily`;
 
 -- ============================================
 -- 사용 예시:
