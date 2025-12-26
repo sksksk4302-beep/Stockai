@@ -100,8 +100,19 @@ def fetch_one_ticker(ticker: str, start: datetime, end: datetime) -> pd.DataFram
         for col in ["bps", "per", "pbr", "eps", "estimated_eps"]:
             fundamental[col] = pd.NA
 
+    # ----- 2-4-2. 시가총액 -----
+    try:
+        market_cap = stock.get_market_cap_by_date(start_str, end_str, ticker)
+        market_cap = market_cap[["시가총액"]].copy()
+        market_cap.columns = ["market_cap"]
+    except Exception as e:
+        print(f"Warning: Could not fetch market cap for {ticker}: {e}")
+        market_cap = pd.DataFrame(index=price.index)
+        market_cap["market_cap"] = pd.NA
+
     # ----- 2-5. 데이터 병합 -----
-    df = price.join(inv, how="left").join(short_bal, how="left").join(fundamental, how="left")
+    df = price.join(inv, how="left").join(short_bal, how="left").join(fundamental, how="left").join(market_cap, how="left")
+
 
     df["ticker"] = ticker
     df["name"] = stock.get_market_ticker_name(ticker)

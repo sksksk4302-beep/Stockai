@@ -120,6 +120,12 @@
         "description": "Estimated EPS"
     },
     {
+        "name": "market_cap",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Market capitalization"
+    },
+    {
         "name": "ma5",
         "type": "FLOAT",
         "mode": "NULLABLE",
