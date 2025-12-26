@@ -186,6 +186,12 @@
         "description": "14-day Average True Range"
     },
     {
+        "name": "obv",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "On-Balance Volume"
+    },
+    {
         "name": "day_of_week",
         "type": "INTEGER",
         "mode": "NULLABLE",

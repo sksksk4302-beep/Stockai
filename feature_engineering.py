@@ -37,6 +37,13 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     true_range = ranges.max(axis=1)
     df['atr'] = true_range.rolling(window=14).mean()
 
+    # OBV (On-Balance Volume)
+    # OBV = 전일 OBV + (종가 > 전일종가 ? +거래량 : -거래량)
+    price_change = df['close'].diff()
+    volume_direction = np.where(price_change > 0, df['volume'], 
+                                np.where(price_change < 0, -df['volume'], 0))
+    df['obv'] = volume_direction.cumsum()
+
     return df
 
 def add_derived_features(df: pd.DataFrame) -> pd.DataFrame:
