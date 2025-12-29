@@ -130,3 +130,26 @@ class BigQueryClient:
         except Exception as e:
             print(f"Error querying latest date: {e}")
             return None
+
+    def run_query(self, query: str):
+        """Execute a SQL query."""
+        try:
+            query_job = self.client.query(query)
+            query_job.result()
+            print(f"Successfully executed query.")
+            return True
+        except Exception as e:
+            print(f"Error executing query: {e}")
+            return False
+
+    def create_views_from_file(self, file_path: str):
+        """Read SQL file and execute it to create views."""
+        if not os.path.exists(file_path):
+            print(f"File not found: {file_path}")
+            return False
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            sql = f.read()
+
+        # BigQuery allows multiple statements in one query if they are separated by semicolons
+        return self.run_query(sql)

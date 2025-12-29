@@ -1,0 +1,288 @@
+--------------- REMOTE BUILD OUTPUT ---------------
+starting build "084f2c4e-0669-4ff6-82f3-0c8f846b3bda"
+FETCHSOURCE
+Fetching storage object: gs://draw-ai-479600_cloudbuild/source/1764324467.573947-e8c6d98b03cd4796801b4bd6548c9390.tgz#1764324469869479
+Copying gs://draw-ai-479600_cloudbuild/source/1764324467.573947-e8c6d98b03cd4796801b4bd6548c9390.tgz#1764324469869479...
+/ [0 files][    0.0 B/135.6 KiB]                                                
+/ [1 files][135.6 KiB/135.6 KiB]
+Operation completed over 1 objects/135.6 KiB.
+BUILD
+Starting Step #0
+Step #0: Already have image (with digest): gcr.io/cloud-builders/docker
+Step #0: Error response from daemon: Head "https://us-central1-docker.pkg.dev/v2/tonal-land-477206-h3/stockaibot/stockaibot/manifests/latest": denied: Permission "artifactregistry.repositories.downloadArtifacts" denied on resource "projects/tonal-land-477206-h3/locations/us-central1/repositories/stockaibot" (or it may not exist)
+Finished Step #0
+Starting Step #1
+Step #1: Already have image (with digest): gcr.io/cloud-builders/docker
+Step #1: Sending build context to Docker daemon  325.6kB
+Step #1: Step 1/13 : FROM python:3.10-slim
+Step #1: 3.10-slim: Pulling from library/python
+Step #1: 0e4bc2bd6656: Pulling fs layer
+Step #1: 9793cbb1e51a: Pulling fs layer
+Step #1: 683c3659b1e9: Pulling fs layer
+Step #1: f86ba98c4d0f: Pulling fs layer
+Step #1: f86ba98c4d0f: Download complete
+Step #1: 9793cbb1e51a: Verifying Checksum
+Step #1: 9793cbb1e51a: Download complete
+Step #1: 683c3659b1e9: Verifying Checksum
+Step #1: 683c3659b1e9: Download complete
+Step #1: 0e4bc2bd6656: Verifying Checksum
+Step #1: 0e4bc2bd6656: Download complete
+Step #1: 0e4bc2bd6656: Pull complete
+Step #1: 9793cbb1e51a: Pull complete
+Step #1: 683c3659b1e9: Pull complete
+Step #1: f86ba98c4d0f: Pull complete
+Step #1: Digest: sha256:c299e10e0070171113f9a1f109dd05e7e634fa94589b056e0e87bb22b2b382a2
+Step #1: Status: Downloaded newer image for python:3.10-slim
+Step #1:  ---> 6f924957e3d2
+Step #1: Step 2/13 : ENV PYTHONUNBUFFERED True
+Step #1:  ---> Running in 0f69e6b88ff5
+Step #1: Removing intermediate container 0f69e6b88ff5
+Step #1:  ---> 195919cae90d
+Step #1: Step 3/13 : ENV PORT 8080
+Step #1:  ---> Running in 76fc9d86a27b
+Step #1: Removing intermediate container 76fc9d86a27b
+Step #1:  ---> fb50033cb2dd
+Step #1: Step 4/13 : WORKDIR /app
+Step #1:  ---> Running in 31bee508cedf
+Step #1: Removing intermediate container 31bee508cedf
+Step #1:  ---> 30044e327d2a
+Step #1: Step 5/13 : COPY requirements.txt .
+Step #1:  ---> a09dac984da6
+Step #1: Step 6/13 : RUN pip install --no-cache-dir -r requirements.txt
+Step #1:  ---> Running in c3e51d1feec1
+Step #1: Collecting pykrx
+Step #1:   Downloading pykrx-1.0.51-py3-none-any.whl (2.2 MB)
+Step #1:      ???????????????????????????????????????? 2.2/2.2 MB 33.5 MB/s eta 0:00:00
+Step #1: Collecting pandas
+Step #1:   Downloading pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+Step #1:      ??????????????????????????????????????? 12.8/12.8 MB 200.7 MB/s eta 0:00:00
+Step #1: Collecting numpy
+Step #1:   Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+Step #1:      ??????????????????????????????????????? 16.8/16.8 MB 212.7 MB/s eta 0:00:00
+Step #1: Collecting google-cloud-storage
+Step #1:   Downloading google_cloud_storage-3.6.0-py3-none-any.whl (299 kB)
+Step #1:      ????????????????????????????????????? 299.0/299.0 kB 254.7 MB/s eta 0:00:00
+Step #1: Collecting functions-framework
+Step #1:   Downloading functions_framework-3.10.0-py3-none-any.whl (41 kB)
+Step #1:      ??????????????????????????????????????? 41.4/41.4 kB 128.4 MB/s eta 0:00:00
+Step #1: Collecting google-cloud-bigquery
+Step #1:   Downloading google_cloud_bigquery-3.38.0-py3-none-any.whl (259 kB)
+Step #1:      ????????????????????????????????????? 259.3/259.3 kB 277.0 MB/s eta 0:00:00
+Step #1: Collecting db-dtypes
+Step #1:   Downloading db_dtypes-1.4.4-py3-none-any.whl (18 kB)
+Step #1: Collecting ta
+Step #1:   Downloading ta-0.11.0.tar.gz (25 kB)
+Step #1:   Preparing metadata (setup.py): started
+Step #1:   Preparing metadata (setup.py): finished with status 'done'
+Step #1: Collecting datetime
+Step #1:   Downloading datetime-6.0-py3-none-any.whl (52 kB)
+Step #1:      ??????????????????????????????????????? 52.6/52.6 kB 178.7 MB/s eta 0:00:00
+Step #1: Collecting requests
+Step #1:   Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+Step #1:      ??????????????????????????????????????? 64.7/64.7 kB 202.5 MB/s eta 0:00:00
+Step #1: Collecting multipledispatch
+Step #1:   Downloading multipledispatch-1.0.0-py3-none-any.whl (12 kB)
+Step #1: Collecting matplotlib
+Step #1:   Downloading matplotlib-3.10.7-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (8.7 MB)
+Step #1:      ???????????????????????????????????????? 8.7/8.7 MB 234.5 MB/s eta 0:00:00
+Step #1: Collecting xlrd
+Step #1:   Downloading xlrd-2.0.2-py2.py3-none-any.whl (96 kB)
+Step #1:      ??????????????????????????????????????? 96.6/96.6 kB 233.7 MB/s eta 0:00:00
+Step #1: Collecting deprecated
+Step #1:   Downloading deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+Step #1: Collecting python-dateutil>=2.8.2
+Step #1:   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Step #1:      ????????????????????????????????????? 229.9/229.9 kB 245.8 MB/s eta 0:00:00
+Step #1: Collecting tzdata>=2022.7
+Step #1:   Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+Step #1:      ????????????????????????????????????? 347.8/347.8 kB 256.2 MB/s eta 0:00:00
+Step #1: Collecting pytz>=2020.1
+Step #1:   Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+Step #1:      ????????????????????????????????????? 509.2/509.2 kB 290.0 MB/s eta 0:00:00
+Step #1: Collecting google-resumable-media<3.0.0,>=2.7.2
+Step #1:   Downloading google_resumable_media-2.8.0-py3-none-any.whl (81 kB)
+Step #1:      ??????????????????????????????????????? 81.3/81.3 kB 225.8 MB/s eta 0:00:00
+Step #1: Collecting google-auth<3.0.0,>=2.26.1
+Step #1:   Downloading google_auth-2.43.0-py2.py3-none-any.whl (223 kB)
+Step #1:      ????????????????????????????????????? 223.1/223.1 kB 245.8 MB/s eta 0:00:00
+Step #1: Collecting google-crc32c<2.0.0,>=1.1.3
+Step #1:   Downloading google_crc32c-1.7.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (38 kB)
+Step #1: Collecting google-cloud-core<3.0.0,>=2.4.2
+Step #1:   Downloading google_cloud_core-2.5.0-py3-none-any.whl (29 kB)
+Step #1: Collecting google-api-core<3.0.0,>=2.27.0
+Step #1:   Downloading google_api_core-2.28.1-py3-none-any.whl (173 kB)
+Step #1:      ????????????????????????????????????? 173.7/173.7 kB 250.5 MB/s eta 0:00:00
+Step #1: Collecting uvicorn<1.0.0,>=0.18.0
+Step #1:   Downloading uvicorn-0.38.0-py3-none-any.whl (68 kB)
+Step #1:      ??????????????????????????????????????? 68.1/68.1 kB 201.0 MB/s eta 0:00:00
+Step #1: Collecting starlette<1.0.0,>=0.37.0
+Step #1:   Downloading starlette-0.50.0-py3-none-any.whl (74 kB)
+Step #1:      ??????????????????????????????????????? 74.0/74.0 kB 197.4 MB/s eta 0:00:00
+Step #1: Collecting Werkzeug<4.0.0,>=0.14
+Step #1:   Downloading werkzeug-3.1.3-py3-none-any.whl (224 kB)
+Step #1:      ????????????????????????????????????? 224.5/224.5 kB 249.3 MB/s eta 0:00:00
+Step #1: Collecting gunicorn>=22.0.0
+Step #1:   Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
+Step #1:      ??????????????????????????????????????? 85.0/85.0 kB 236.1 MB/s eta 0:00:00
+Step #1: Collecting flask<4.0,>=2.0
+Step #1:   Downloading flask-3.1.2-py3-none-any.whl (103 kB)
+Step #1:      ????????????????????????????????????? 103.3/103.3 kB 233.3 MB/s eta 0:00:00
+Step #1: Collecting uvicorn-worker<1.0.0,>=0.2.0
+Step #1:   Downloading uvicorn_worker-0.4.0-py3-none-any.whl (5.4 kB)
+Step #1: Collecting watchdog>=1.0.0
+Step #1:   Downloading watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl (79 kB)
+Step #1:      ??????????????????????????????????????? 79.1/79.1 kB 235.0 MB/s eta 0:00:00
+Step #1: Collecting cloudevents<=1.12.0,>=1.12.0
+Step #1:   Downloading cloudevents-1.12.0-py3-none-any.whl (55 kB)
+Step #1:      ??????????????????????????????????????? 55.8/55.8 kB 179.8 MB/s eta 0:00:00
+Step #1: Collecting click<9.0,>=7.0
+Step #1:   Downloading click-8.3.1-py3-none-any.whl (108 kB)
+Step #1:      ????????????????????????????????????? 108.3/108.3 kB 222.7 MB/s eta 0:00:00
+Step #1: Collecting packaging>=24.2.0
+Step #1:   Downloading packaging-25.0-py3-none-any.whl (66 kB)
+Step #1:      ??????????????????????????????????????? 66.5/66.5 kB 203.8 MB/s eta 0:00:00
+Step #1: Collecting pyarrow>=13.0.0
+Step #1:   Downloading pyarrow-22.0.0-cp310-cp310-manylinux_2_28_x86_64.whl (47.6 MB)
+Step #1:      ??????????????????????????????????????? 47.6/47.6 MB 222.1 MB/s eta 0:00:00
+Step #1: Collecting deprecation<3.0,>=2.0
+Step #1:   Downloading deprecation-2.1.0-py2.py3-none-any.whl (11 kB)
+Step #1: Collecting blinker>=1.9.0
+Step #1:   Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Step #1: Collecting itsdangerous>=2.2.0
+Step #1:   Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Step #1: Collecting jinja2>=3.1.2
+Step #1:   Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+Step #1:      ????????????????????????????????????? 134.9/134.9 kB 244.6 MB/s eta 0:00:00
+Step #1: Collecting markupsafe>=2.1.1
+Step #1:   Downloading markupsafe-3.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (20 kB)
+Step #1: Collecting protobuf!=3.20.0,!=3.20.1,!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<7.0.0,>=3.19.5
+Step #1:   Downloading protobuf-6.33.1-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
+Step #1:      ????????????????????????????????????? 323.2/323.2 kB 265.2 MB/s eta 0:00:00
+Step #1: Collecting proto-plus<2.0.0,>=1.22.3
+Step #1:   Downloading proto_plus-1.26.1-py3-none-any.whl (50 kB)
+Step #1:      ??????????????????????????????????????? 50.2/50.2 kB 192.1 MB/s eta 0:00:00
+Step #1: Collecting googleapis-common-protos<2.0.0,>=1.56.2
+Step #1:   Downloading googleapis_common_protos-1.72.0-py3-none-any.whl (297 kB)
+Step #1:      ????????????????????????????????????? 297.5/297.5 kB 274.9 MB/s eta 0:00:00
+Step #1: Collecting grpcio-status<2.0.0,>=1.33.2
+Step #1:   Downloading grpcio_status-1.76.0-py3-none-any.whl (14 kB)
+Step #1: Collecting grpcio<2.0.0,>=1.33.2
+Step #1:   Downloading grpcio-1.76.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (6.6 MB)
+Step #1:      ???????????????????????????????????????? 6.6/6.6 MB 221.5 MB/s eta 0:00:00
+Step #1: Collecting rsa<5,>=3.1.4
+Step #1:   Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+Step #1: Collecting cachetools<7.0,>=2.0.0
+Step #1:   Downloading cachetools-6.2.2-py3-none-any.whl (11 kB)
+Step #1: Collecting pyasn1-modules>=0.2.1
+Step #1:   Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+Step #1:      ????????????????????????????????????? 181.3/181.3 kB 164.5 MB/s eta 0:00:00
+Step #1: Collecting six>=1.5
+Step #1:   Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Step #1: Collecting urllib3<3,>=1.21.1
+Step #1:   Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
+Step #1:      ????????????????????????????????????? 129.8/129.8 kB 250.1 MB/s eta 0:00:00
+Step #1: Collecting idna<4,>=2.5
+Step #1:   Downloading idna-3.11-py3-none-any.whl (71 kB)
+Step #1:      ??????????????????????????????????????? 71.0/71.0 kB 214.2 MB/s eta 0:00:00
+Step #1: Collecting certifi>=2017.4.17
+Step #1:   Downloading certifi-2025.11.12-py3-none-any.whl (159 kB)
+Step #1:      ????????????????????????????????????? 159.4/159.4 kB 257.0 MB/s eta 0:00:00
+Step #1: Collecting charset_normalizer<4,>=2
+Step #1:   Downloading charset_normalizer-3.4.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+Step #1:      ????????????????????????????????????? 153.6/153.6 kB 242.6 MB/s eta 0:00:00
+Step #1: Collecting typing-extensions>=4.10.0
+Step #1:   Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Step #1:      ??????????????????????????????????????? 44.6/44.6 kB 191.0 MB/s eta 0:00:00
+Step #1: Collecting anyio<5,>=3.6.2
+Step #1:   Downloading anyio-4.11.0-py3-none-any.whl (109 kB)
+Step #1:      ????????????????????????????????????? 109.1/109.1 kB 233.6 MB/s eta 0:00:00
+Step #1: Collecting h11>=0.8
+Step #1:   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Step #1: Collecting zope.interface
+Step #1:   Downloading zope_interface-8.1.1-cp310-cp310-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl (254 kB)
+Step #1:      ????????????????????????????????????? 254.5/254.5 kB 263.2 MB/s eta 0:00:00
+Step #1: Collecting wrapt<3,>=1.10
+Step #1:   Downloading wrapt-2.0.1-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (113 kB)
+Step #1:      ????????????????????????????????????? 113.7/113.7 kB 220.0 MB/s eta 0:00:00
+Step #1: Collecting pillow>=8
+Step #1:   Downloading pillow-12.0.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+Step #1:      ???????????????????????????????????????? 7.0/7.0 MB 220.7 MB/s eta 0:00:00
+Step #1: Collecting cycler>=0.10
+Step #1:   Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+Step #1: Collecting pyparsing>=3
+Step #1:   Downloading pyparsing-3.2.5-py3-none-any.whl (113 kB)
+Step #1:      ????????????????????????????????????? 113.9/113.9 kB 226.6 MB/s eta 0:00:00
+Step #1: Collecting fonttools>=4.22.0
+Step #1:   Downloading fonttools-4.60.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.8 MB)
+Step #1:      ???????????????????????????????????????? 4.8/4.8 MB 242.9 MB/s eta 0:00:00
+Step #1: Collecting contourpy>=1.0.1
+Step #1:   Downloading contourpy-1.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (325 kB)
+Step #1:      ????????????????????????????????????? 325.0/325.0 kB 277.3 MB/s eta 0:00:00
+Step #1: Collecting kiwisolver>=1.3.1
+Step #1:   Downloading kiwisolver-1.4.9-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (1.6 MB)
+Step #1:      ???????????????????????????????????????? 1.6/1.6 MB 298.2 MB/s eta 0:00:00
+Step #1: Collecting exceptiongroup>=1.0.2
+Step #1:   Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+Step #1: Collecting sniffio>=1.1
+Step #1:   Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+Step #1: Collecting pyasn1<0.7.0,>=0.6.1
+Step #1:   Downloading pyasn1-0.6.1-py3-none-any.whl (83 kB)
+Step #1:      ??????????????????????????????????????? 83.1/83.1 kB 211.8 MB/s eta 0:00:00
+Step #1: Building wheels for collected packages: ta
+Step #1:   Building wheel for ta (setup.py): started
+Step #1:   Building wheel for ta (setup.py): finished with status 'done'
+Step #1:   Created wheel for ta: filename=ta-0.11.0-py3-none-any.whl size=29483 sha256=0939601b07626c938173e8d2157e34db65c0585d43ede39745e7fabb669d5855
+Step #1:   Stored in directory: /tmp/pip-ephem-wheel-cache-wz8mnop1/wheels/5f/67/4f/8a9f252836e053e532c6587a3230bc72a4deb16b03a829610b
+Step #1: Successfully built ta
+Step #1: Installing collected packages: pytz, multipledispatch, zope.interface, xlrd, wrapt, watchdog, urllib3, tzdata, typing-extensions, sniffio, six, pyparsing, pyasn1, pyarrow, protobuf, pillow, packaging, numpy, markupsafe, kiwisolver, itsdangerous, idna, h11, google-crc32c, fonttools, cycler, click, charset_normalizer, certifi, cachetools, blinker, Werkzeug, uvicorn, rsa, requests, python-dateutil, pyasn1-modules, proto-plus, jinja2, gunicorn, grpcio, googleapis-common-protos, google-resumable-media, exceptiongroup, deprecation, deprecated, datetime, contourpy, uvicorn-worker, pandas, matplotlib, grpcio-status, google-auth, flask, cloudevents, anyio, ta, starlette, pykrx, google-api-core, db-dtypes, google-cloud-core, functions-framework, google-cloud-storage, google-cloud-bigquery
+Step #1: Successfully installed Werkzeug-3.1.3 anyio-4.11.0 blinker-1.9.0 cachetools-6.2.2 certifi-2025.11.12 charset_normalizer-3.4.4 click-8.3.1 cloudevents-1.12.0 contourpy-1.3.2 cycler-0.12.1 datetime-6.0 db-dtypes-1.4.4 deprecated-1.3.1 deprecation-2.1.0 exceptiongroup-1.3.1 flask-3.1.2 fonttools-4.60.1 functions-framework-3.10.0 google-api-core-2.28.1 google-auth-2.43.0 google-cloud-bigquery-3.38.0 google-cloud-core-2.5.0 google-cloud-storage-3.6.0 google-crc32c-1.7.1 google-resumable-media-2.8.0 googleapis-common-protos-1.72.0 grpcio-1.76.0 grpcio-status-1.76.0 gunicorn-23.0.0 h11-0.16.0 idna-3.11 itsdangerous-2.2.0 jinja2-3.1.6 kiwisolver-1.4.9 markupsafe-3.0.3 matplotlib-3.10.7 multipledispatch-1.0.0 numpy-2.2.6 packaging-25.0 pandas-2.3.3 pillow-12.0.0 proto-plus-1.26.1 protobuf-6.33.1 pyarrow-22.0.0 pyasn1-0.6.1 pyasn1-modules-0.4.2 pykrx-1.0.51 pyparsing-3.2.5 python-dateutil-2.9.0.post0 pytz-2025.2 requests-2.32.5 rsa-4.9.1 six-1.17.0 sniffio-1.3.1 starlette-0.50.0 ta-0.11.0 typing-extensions-4.15.0 tzdata-2025.2 urllib3-2.5.0 uvicorn-0.38.0 uvicorn-worker-0.4.0 watchdog-6.0.0 wrapt-2.0.1 xlrd-2.0.2 zope.interface-8.1.1
+Step #1: [91mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+Step #1: [0m[91m
+Step #1: [notice] A new release of pip is available: 23.0.1 -> 25.3
+Step #1: [notice] To update, run: pip install --upgrade pip
+Step #1: [0mRemoving intermediate container c3e51d1feec1
+Step #1:  ---> 41efebe34296
+Step #1: Step 7/13 : COPY main.py .
+Step #1:  ---> e2d9a2a8c596
+Step #1: Step 8/13 : COPY tickers.json .
+Step #1:  ---> 7d99e232390d
+Step #1: Step 9/13 : COPY bigquery_client.py .
+Step #1:  ---> 2d136b78698f
+Step #1: Step 10/13 : COPY feature_engineering.py .
+Step #1:  ---> b8631f11cf2d
+Step #1: Step 11/13 : COPY config.py .
+Step #1:  ---> 0e3546e6fc41
+Step #1: Step 12/13 : COPY schema/ ./schema/
+Step #1:  ---> 107e0fced5b8
+Step #1: Step 13/13 : CMD exec functions-framework --target=cloud_function_entry --source=main.py --port=$PORT
+Step #1:  ---> Running in 7a8cb5b11a6f
+Step #1: Removing intermediate container 7a8cb5b11a6f
+Step #1:  ---> 80a2dbc348ac
+Step #1: Successfully built 80a2dbc348ac
+Step #1: Successfully tagged us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot:latest
+Finished Step #1
+Starting Step #2
+Step #2: Already have image (with digest): gcr.io/cloud-builders/docker
+Step #2: Using default tag: latest
+Step #2: The push refers to repository [us-central1-docker.pkg.dev/tonal-land-477206-h3/stockaibot/stockaibot]
+Step #2: eec4f34552b8: Preparing
+Step #2: 588e20906059: Preparing
+Step #2: 3f00080dec9d: Preparing
+Step #2: 0bb028009ee2: Preparing
+Step #2: 817cbf7f5848: Preparing
+Step #2: 8751ab744253: Preparing
+Step #2: f27cb84d72ac: Preparing
+Step #2: dc9ba2e6323e: Preparing
+Step #2: cd53922c7283: Preparing
+Step #2: 548ba1e7e829: Preparing
+Step #2: a8045a14b5f4: Preparing
+Step #2: cb4ecf39d967: Preparing
+Step #2: 70a290c5e58b: Preparing
+Step #2: a8045a14b5f4: Waiting
+Step #2: cb4ecf39d967: Waiting
+Step #2: 70a290c5e58b: Waiting
+Step #2: denied: Permission "artifactregistry.repositories.uploadArtifacts" denied on resource "projects/tonal-land-477206-h3/locations/us-central1/repositories/stockaibot" (or it may not exist)
+Finished Step #2
+ERROR
+ERROR: build step 2 "gcr.io/cloud-builders/docker" failed: step exited with non-zero status: 1
+---------------------------------------------------
